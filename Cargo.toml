@@ -14,3 +14,9 @@ name = "smb"
 path = "src/main.rs"
 
 [dependencies]
+anyhow = "1.0.58"
+clap = { version = "4.1.6", features = ["derive"] }
+console = "0.15.0"
+reqwest = { version = "0.11", features = ["json"] }
+serde = { version = "1", features = ["derive"] }
+tokio = { version = "1.14.1", features = ["full"] }
