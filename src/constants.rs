@@ -6,4 +6,5 @@ pub const BASE_URL: &'static str = "http://localhost:3000";
 #[cfg(not(debug_assertions))]
 pub const BASE_URL: &'static str = "https://api.smbpndk.com/";
 
-pub const GUARD_EMOJI: Emoji<'_, '_> = Emoji("🛡  ", "");
+pub const OK_EMOJI: Emoji<'_, '_> = Emoji("✅ ", "");
+pub const ERROR_EMOJI: Emoji<'_, '_> = Emoji("❌ ", "");

@@ -2,8 +2,10 @@ use std::{fs::OpenOptions, path::PathBuf, str::FromStr};
 
 use anyhow::{anyhow, Result};
 use clap::Parser;
+use console::style;
 use smbpndk_cli::{
     cli::{Cli, Commands},
+    constants::{ERROR_EMOJI, OK_EMOJI},
     login::{process_login, LoginArgs},
 };
 use tracing::subscriber::set_global_default;
@@ -42,10 +44,10 @@ fn setup_logging(level: Option<EnvFilter>) -> Result<()> {
 async fn main() {
     match run().await {
         Ok(_) => {
-            println!("Command successful.");
+            println!("\n{} {}", OK_EMOJI, style("Command successful.").green());
         }
         Err(e) => {
-            eprintln!("{}", e);
+            println!("\n{} {}", ERROR_EMOJI, style(e).red());
             std::process::exit(1);
         }
     }

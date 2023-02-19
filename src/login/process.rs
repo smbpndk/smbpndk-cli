@@ -1,4 +1,9 @@
-use anyhow::Result;
+use std::{
+    fs::{create_dir_all, OpenOptions},
+    io::Write,
+};
+
+use anyhow::{anyhow, Result};
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 
@@ -22,8 +27,21 @@ struct User {
 
 #[derive(Debug, Serialize, Deserialize)]
 struct LoginResult {
-    status: i32,
-    error: String,
+    status: Status,
+    data: Data,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct Status {
+    code: i32,
+    message: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct Data {
+    id: i32,
+    email: String,
+    created_at: String,
 }
 
 pub async fn process_login(args: LoginArgs) -> Result<()> {
@@ -42,14 +60,35 @@ pub async fn process_login(args: LoginArgs) -> Result<()> {
 
     match response.status() {
         reqwest::StatusCode::OK => {
-            let login_result: LoginResult = response.json().await?;
-            println!("Login result: {:?}", login_result);
-        }
-        reqwest::StatusCode::UNAUTHORIZED => {
-            println!("UNAUTHORIZED");
+            let headers = response.headers();
+            match headers.get("Authorization") {
+                Some(token) => {
+                    println!("Token: {:?}", token.to_str()?);
+                    match home::home_dir() {
+                        Some(path) => {
+                            print!("Home directory: {:?}", path);
+                            create_dir_all(path.join(".smb"))?;
+                            let mut file = OpenOptions::new()
+                                .create(true)
+                                .write(true)
+                                .open([path.to_str().unwrap(), "/.smb/token"].join(""))?;
+                            file.write_all(token.to_str()?.as_bytes())?;
+                        }
+                        None => {
+                            let error = anyhow!("Failed to get home directory.");
+                            return Err(error);
+                        }
+                    }
+                }
+                None => {
+                    let error = anyhow!("Failed to get token. Probably a backend issue.");
+                    return Err(error);
+                }
+            }
         }
         _ => {
-            println!("Login failed: {:?}", response);
+            let error = anyhow!("Failed to log in. Check your username and password.");
+            return Err(error);
         }
     }
 
