@@ -1,6 +1,6 @@
 [package]
 name = "smbpndk-cli"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 description = "Command line tool for creating and managing SmbPndk resources."
 license = "Apache-2.0"
@@ -14,3 +14,14 @@ name = "smb"
 path = "src/main.rs"
 
 [dependencies]
+anyhow = "1.0.58"
+clap = { version = "4.1.6", features = ["derive"] }
+console = "0.15.0"
+home = "0.5.4"
+reqwest = { version = "0.11", features = ["json"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1.0.82"
+tokio = { version = "1.14.1", features = ["full"] }
+tracing = { version = "0.1.35", features = ["log"] }
+tracing-bunyan-formatter = "0.3.3"
+tracing-subscriber = { version = "0.3.14", features = ["registry", "env-filter"] }
