@@ -2,6 +2,8 @@ use anyhow::Result;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 
+use crate::constants::BASE_URL;
+
 pub struct LoginArgs {
     pub username: String,
     pub password: String,
@@ -33,7 +35,7 @@ pub async fn process_login(args: LoginArgs) -> Result<()> {
     };
 
     let response: LoginResult = Client::new()
-        .post("http://localhost:3000/v1/users/sign_in")
+        .post([BASE_URL, "/v1/users/sign_in"].join(""))
         .json(&login_params)
         .send()
         .await?
