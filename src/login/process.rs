@@ -34,14 +34,24 @@ pub async fn process_login(args: LoginArgs) -> Result<()> {
         },
     };
 
-    let response: LoginResult = Client::new()
+    let response = Client::new()
         .post([BASE_URL, "/v1/users/sign_in"].join(""))
         .json(&login_params)
         .send()
-        .await?
-        .json()
         .await?;
 
-    println!("Response: {:?}", response);
+    match response.status() {
+        reqwest::StatusCode::OK => {
+            let login_result: LoginResult = response.json().await?;
+            println!("Login result: {:?}", login_result);
+        }
+        reqwest::StatusCode::UNAUTHORIZED => {
+            println!("UNAUTHORIZED");
+        }
+        _ => {
+            println!("Login failed: {:?}", response);
+        }
+    }
+
     Ok(())
 }
