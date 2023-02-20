@@ -20,9 +20,9 @@ struct LoginParams {
 }
 
 #[derive(Debug, Serialize)]
-struct User {
-    email: String,
-    password: String,
+pub struct User {
+    pub(crate) email: String,
+    pub(crate) password: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

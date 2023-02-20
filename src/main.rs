@@ -7,6 +7,7 @@ use smbpndk_cli::{
     cli::{Cli, Commands},
     constants::ERROR_EMOJI,
     login::{process_login, LoginArgs},
+    signup::{process_signup, SignupArgs},
 };
 use spinners::Spinner;
 use tokio::time::sleep;
@@ -53,7 +54,7 @@ async fn main() {
     }
 }
 
-async fn run() -> Result<()> {
+async fn run() -> Result<Spinner> {
     let cli = Cli::parse();
 
     let log_level_error: Result<()> = Err(anyhow!(
@@ -86,7 +87,36 @@ async fn run() -> Result<()> {
             spinner.stop_and_persist("✅", style("You are logged in!").green().bold().to_string())
         }
         Commands::Signup { username, password } => {
-            println!("Signup: {}, {}", username, password);
+            let mut spinner = Spinner::new(
+                spinners::Spinners::BouncingBall,
+                style("Signing up...").green().bold().to_string(),
+            );
+            let join_handle = tokio::spawn(async move {
+                let _future = process_signup(SignupArgs { username, password }).await;
+                sleep(Duration::from_millis(5000)).await;
+            });
+
+            match join_handle.await {
+                Ok(_) => {}
+                Err(e) => {
+                    spinner.stop_and_persist(
+                        "❌",
+                        style(format!("Failed to sign up: {}", e))
+                            .red()
+                            .bold()
+                            .to_string(),
+                    );
+                    return Ok(());
+                }
+            }
+
+            spinner.stop_and_persist(
+                "✅",
+                style("Your account is created! Check your email to confirm your account.")
+                    .green()
+                    .bold()
+                    .to_string(),
+            )
         }
     }
 
