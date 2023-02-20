@@ -1,13 +1,15 @@
-use std::{fs::OpenOptions, path::PathBuf, str::FromStr};
+use std::{fs::OpenOptions, path::PathBuf, str::FromStr, time::Duration};
 
 use anyhow::{anyhow, Result};
 use clap::Parser;
 use console::style;
 use smbpndk_cli::{
     cli::{Cli, Commands},
-    constants::{ERROR_EMOJI, OK_EMOJI},
+    constants::ERROR_EMOJI,
     login::{process_login, LoginArgs},
 };
+use spinners::Spinner;
+use tokio::time::sleep;
 use tracing::subscriber::set_global_default;
 use tracing_bunyan_formatter::{BunyanFormattingLayer, JsonStorageLayer};
 use tracing_subscriber::{filter::LevelFilter, prelude::*, EnvFilter};
@@ -43,9 +45,7 @@ fn setup_logging(level: Option<EnvFilter>) -> Result<()> {
 #[tokio::main]
 async fn main() {
     match run().await {
-        Ok(_) => {
-            println!("\n{} {}", OK_EMOJI, style("Command successful.").green());
-        }
+        Ok(_) => {}
         Err(e) => {
             println!("\n{} {}", ERROR_EMOJI, style(e).red());
             std::process::exit(1);
@@ -73,8 +73,17 @@ async fn run() -> Result<()> {
 
     match cli.command {
         Commands::Login { username, password } => {
-            println!("Login: {}, {}", username, password);
-            process_login(LoginArgs { username, password }).await?;
+            let mut spinner = Spinner::new(
+                spinners::Spinners::SimpleDotsScrolling,
+                style("Logging in...").green().bold().to_string(),
+            );
+            let join_handle = tokio::spawn(async move {
+                let _future = process_login(LoginArgs { username, password }).await;
+                sleep(Duration::from_millis(5000)).await;
+            });
+
+            join_handle.await?;
+            spinner.stop_and_persist("✅", style("You are logged in!").green().bold().to_string())
         }
     }
 
