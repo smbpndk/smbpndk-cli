@@ -13,7 +13,15 @@ pub struct Cli {
 
 #[derive(Subcommand)]
 pub enum Commands {
-    #[clap(about = "Create a new project")]
+    #[clap(about = "Create an account")]
+    Signup {
+        #[clap(short, long)]
+        username: String,
+        #[clap(short, long)]
+        password: String,
+    },
+
+    #[clap(about = "Login to an account")]
     Login {
         #[clap(short, long)]
         username: String,

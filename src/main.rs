@@ -85,6 +85,9 @@ async fn run() -> Result<()> {
             join_handle.await?;
             spinner.stop_and_persist("✅", style("You are logged in!").green().bold().to_string())
         }
+        Commands::Signup { username, password } => {
+            println!("Signup: {}, {}", username, password);
+        }
     }
 
     Ok(())
