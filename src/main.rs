@@ -1,9 +1,10 @@
-use std::{fs::OpenOptions, path::PathBuf, str::FromStr, time::Duration};
+use std::{fs::OpenOptions, path::PathBuf, str::FromStr};
 
 use anyhow::{anyhow, Result};
 use clap::Parser;
 use console::style;
 use dialoguer::{theme::ColorfulTheme, Input, Password};
+use regex::Regex;
 use smbpndk_cli::{
     cli::{Cli, Commands},
     constants::ERROR_EMOJI,
@@ -11,7 +12,7 @@ use smbpndk_cli::{
     signup::{process_signup, SignupArgs},
 };
 use spinners::Spinner;
-use tokio::time::sleep;
+
 use tracing::subscriber::set_global_default;
 use tracing_bunyan_formatter::{BunyanFormattingLayer, JsonStorageLayer};
 use tracing_subscriber::{filter::LevelFilter, prelude::*, EnvFilter};
@@ -116,22 +117,39 @@ async fn run() -> Result<CommandResult> {
                 }
             }
         }
-        Commands::Signup { username, password } => {
+        Commands::Signup {} => {
+            println!("Use your email address as your username.");
+            let username = Input::<String>::with_theme(&ColorfulTheme::default())
+                .with_prompt("Username")
+                .validate_with(|input: &String| -> Result<(), &str> {
+                    let email_regex = Regex::new(r"^([a-z0-9_+]([a-z0-9_+.]*[a-z0-9_+])?)@([a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,6})").unwrap();
+
+                    if email_regex.is_match(input) {
+                        Ok(())
+                    } else {
+                        Err("Username must be an email address")
+                    }
+                })
+                .interact()
+                .unwrap();
+            let password = Password::with_theme(&ColorfulTheme::default())
+                .with_prompt("Password")
+                .with_confirmation("Confirm password", "Passwords do not match")
+                .interact()
+                .unwrap();
+
             let spinner = Spinner::new(
                 spinners::Spinners::BouncingBall,
                 style("Signing up...").green().bold().to_string(),
             );
-            let join_handle = tokio::spawn(async move {
-                let _future = process_signup(SignupArgs { username, password }).await;
-                sleep(Duration::from_millis(5000)).await;
-            });
 
-            match join_handle.await {
+            match process_signup(SignupArgs { username, password }).await {
                 Ok(_) => {
                     return Ok(CommandResult {
                         spinner: spinner,
                         symbol: "✅".to_owned(),
-                        msg: "You are signed up!".to_owned(),
+                        msg: "You are signed up! Check your email to confirm your account."
+                            .to_owned(),
                     });
                 }
                 Err(e) => {

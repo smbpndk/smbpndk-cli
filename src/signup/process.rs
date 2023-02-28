@@ -1,6 +1,7 @@
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use reqwest::Client;
 use serde::Serialize;
+use tokio::sync::watch::error;
 
 use crate::{constants::BASE_URL, login::User};
 pub struct SignupArgs {
@@ -32,7 +33,8 @@ pub async fn process_signup(args: SignupArgs) -> Result<()> {
             println!("token: {}", token);
         }
         _ => {
-            println!("Error: {}", response.status());
+            let error = anyhow!("Failed to signup: {}", response.status());
+            return Err(error);
         }
     }
 

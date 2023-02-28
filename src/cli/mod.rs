@@ -13,14 +13,11 @@ pub struct Cli {
 
 #[derive(Subcommand)]
 pub enum Commands {
-    #[clap(about = "Create an account")]
-    Signup {
-        #[clap(short, long)]
-        username: String,
-        #[clap(short, long)]
-        password: String,
-    },
+    #[clap(about = "Create an account. Use your email as your username.")]
+    Signup {},
 
-    #[clap(about = "Login to your account. To create an account, visit https://smbpndk.com")]
+    #[clap(
+        about = "Login to your account. To create an account, use smb signup or visit https://smbpndk.com"
+    )]
     Login {},
 }
