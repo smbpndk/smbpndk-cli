@@ -21,11 +21,6 @@ pub enum Commands {
         password: String,
     },
 
-    #[clap(about = "Login to an account")]
-    Login {
-        #[clap(short, long)]
-        username: String,
-        #[clap(short, long)]
-        password: String,
-    },
+    #[clap(about = "Login to your account. To create an account, visit https://smbpndk.com")]
+    Login {},
 }

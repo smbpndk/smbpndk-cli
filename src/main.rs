@@ -3,6 +3,7 @@ use std::{fs::OpenOptions, path::PathBuf, str::FromStr, time::Duration};
 use anyhow::{anyhow, Result};
 use clap::Parser;
 use console::style;
+use dialoguer::{theme::ColorfulTheme, Input, Password};
 use smbpndk_cli::{
     cli::{Cli, Commands},
     constants::ERROR_EMOJI,
@@ -54,7 +55,7 @@ async fn main() {
     }
 }
 
-async fn run() -> Result<Spinner> {
+async fn run() -> Result<()> {
     let cli = Cli::parse();
 
     let log_level_error: Result<()> = Err(anyhow!(
@@ -73,7 +74,17 @@ async fn run() -> Result<Spinner> {
     }
 
     match cli.command {
-        Commands::Login { username, password } => {
+        Commands::Login {} => {
+            println!("Provide your login credentials.");
+            let username = Input::<String>::with_theme(&ColorfulTheme::default())
+                .with_prompt("Username")
+                .interact()
+                .unwrap();
+            let password = Password::with_theme(&ColorfulTheme::default())
+                .with_prompt("Password")
+                .interact()
+                .unwrap();
+
             let mut spinner = Spinner::new(
                 spinners::Spinners::SimpleDotsScrolling,
                 style("Logging in...").green().bold().to_string(),
@@ -83,8 +94,10 @@ async fn run() -> Result<Spinner> {
                 sleep(Duration::from_millis(5000)).await;
             });
 
-            join_handle.await?;
-            spinner.stop_and_persist("✅", style("You are logged in!").green().bold().to_string())
+            match join_handle.await {
+                _ => {}
+            }
+            spinner.stop_and_persist("✅", style("You are logged in!").green().bold().to_string());
         }
         Commands::Signup { username, password } => {
             let mut spinner = Spinner::new(
