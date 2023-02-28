@@ -102,7 +102,7 @@ pub async fn process_login(args: LoginArgs) -> Result<()> {
             }
         }
         _ => {
-            let error = anyhow!("Failed to log in. Check your username and password.");
+            let error = anyhow!("Connection error. Check your username and password.");
             return Err(error);
         }
     }

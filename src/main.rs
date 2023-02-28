@@ -47,7 +47,10 @@ fn setup_logging(level: Option<EnvFilter>) -> Result<()> {
 #[tokio::main]
 async fn main() {
     match run().await {
-        Ok(_) => {}
+        Ok(result) => {
+            let mut spinner = result.spinner;
+            spinner.stop_and_persist(&result.symbol, result.msg);
+        }
         Err(e) => {
             println!("\n{} {}", ERROR_EMOJI, style(e).red());
             std::process::exit(1);
@@ -55,10 +58,16 @@ async fn main() {
     }
 }
 
-async fn run() -> Result<()> {
+struct CommandResult {
+    spinner: Spinner,
+    symbol: String,
+    msg: String,
+}
+
+async fn run() -> Result<CommandResult> {
     let cli = Cli::parse();
 
-    let log_level_error: Result<()> = Err(anyhow!(
+    let log_level_error: Result<CommandResult> = Err(anyhow!(
         "Invalid log level: {:?}.\n Valid levels are: trace, debug, info, warn, and error.",
         cli.log_level
     ));
@@ -85,22 +94,30 @@ async fn run() -> Result<()> {
                 .interact()
                 .unwrap();
 
-            let mut spinner = Spinner::new(
+            let spinner = Spinner::new(
                 spinners::Spinners::SimpleDotsScrolling,
                 style("Logging in...").green().bold().to_string(),
             );
-            let join_handle = tokio::spawn(async move {
-                let _future = process_login(LoginArgs { username, password }).await;
-                sleep(Duration::from_millis(5000)).await;
-            });
 
-            match join_handle.await {
-                _ => {}
+            match process_login(LoginArgs { username, password }).await {
+                Ok(_) => {
+                    return Ok(CommandResult {
+                        spinner: spinner,
+                        symbol: "✅".to_owned(),
+                        msg: "You are logged in!".to_owned(),
+                    });
+                }
+                Err(e) => {
+                    return Ok(CommandResult {
+                        spinner: spinner,
+                        symbol: "❌".to_owned(),
+                        msg: format!("Failed to login: {}", e),
+                    });
+                }
             }
-            spinner.stop_and_persist("✅", style("You are logged in!").green().bold().to_string());
         }
         Commands::Signup { username, password } => {
-            let mut spinner = Spinner::new(
+            let spinner = Spinner::new(
                 spinners::Spinners::BouncingBall,
                 style("Signing up...").green().bold().to_string(),
             );
@@ -110,28 +127,21 @@ async fn run() -> Result<()> {
             });
 
             match join_handle.await {
-                Ok(_) => {}
+                Ok(_) => {
+                    return Ok(CommandResult {
+                        spinner: spinner,
+                        symbol: "✅".to_owned(),
+                        msg: "You are signed up!".to_owned(),
+                    });
+                }
                 Err(e) => {
-                    spinner.stop_and_persist(
-                        "❌",
-                        style(format!("Failed to sign up: {}", e))
-                            .red()
-                            .bold()
-                            .to_string(),
-                    );
-                    return Ok(());
+                    return Ok(CommandResult {
+                        spinner: spinner,
+                        symbol: "❌".to_owned(),
+                        msg: format!("Failed to signup: {}", e),
+                    });
                 }
             }
-
-            spinner.stop_and_persist(
-                "✅",
-                style("Your account is created! Check your email to confirm your account.")
-                    .green()
-                    .bold()
-                    .to_string(),
-            )
         }
     }
-
-    Ok(())
 }
