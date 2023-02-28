@@ -44,6 +44,21 @@ struct Data {
     created_at: String,
 }
 
+macro_rules! debug {
+    ($($e:expr),+) => {
+        {
+            #[cfg(debug_assertions)]
+            {
+                dbg!($($e),+)
+            }
+            #[cfg(not(debug_assertions))]
+            {
+                ($($e),+)
+            }
+        }
+    };
+}
+
 pub async fn process_login(args: LoginArgs) -> Result<()> {
     let login_params = LoginParams {
         user: User {
@@ -63,10 +78,10 @@ pub async fn process_login(args: LoginArgs) -> Result<()> {
             let headers = response.headers();
             match headers.get("Authorization") {
                 Some(token) => {
-                    println!("Token: {:?}", token.to_str()?);
+                    debug!(token.to_str()?);
                     match home::home_dir() {
                         Some(path) => {
-                            print!("Home directory: {:?}", path);
+                            debug!(path.to_str().unwrap());
                             create_dir_all(path.join(".smb"))?;
                             let mut file = OpenOptions::new()
                                 .create(true)
