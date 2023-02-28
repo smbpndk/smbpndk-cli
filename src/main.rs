@@ -3,6 +3,7 @@ use std::{fs::OpenOptions, path::PathBuf, str::FromStr};
 use anyhow::{anyhow, Result};
 use clap::Parser;
 use console::style;
+use dialoguer::{theme::ColorfulTheme, Input, Password};
 use smbpndk_cli::{
     cli::{Cli, Commands},
     constants::{ERROR_EMOJI, OK_EMOJI},
@@ -72,8 +73,17 @@ async fn run() -> Result<()> {
     }
 
     match cli.command {
-        Commands::Login { username, password } => {
-            println!("Login: {}, {}", username, password);
+        Commands::Login {} => {
+            println!("Provide your login credentials.");
+            let username = Input::<String>::with_theme(&ColorfulTheme::default())
+                .with_prompt("Username")
+                .interact()
+                .unwrap();
+            let password = Password::with_theme(&ColorfulTheme::default())
+                .with_prompt("Password")
+                .interact()
+                .unwrap();
+
             process_login(LoginArgs { username, password }).await?;
         }
     }
