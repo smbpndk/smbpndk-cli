@@ -101,20 +101,16 @@ async fn run() -> Result<CommandResult> {
             );
 
             match process_login(LoginArgs { username, password }).await {
-                Ok(_) => {
-                    return Ok(CommandResult {
-                        spinner: spinner,
-                        symbol: "✅".to_owned(),
-                        msg: "You are logged in!".to_owned(),
-                    });
-                }
-                Err(e) => {
-                    return Ok(CommandResult {
-                        spinner: spinner,
-                        symbol: "❌".to_owned(),
-                        msg: format!("Failed to login: {}", e),
-                    });
-                }
+                Ok(_) => Ok(CommandResult {
+                    spinner,
+                    symbol: "✅".to_owned(),
+                    msg: "You are logged in!".to_owned(),
+                }),
+                Err(e) => Ok(CommandResult {
+                    spinner,
+                    symbol: "❌".to_owned(),
+                    msg: format!("Failed to login: {e}"),
+                }),
             }
         }
         Commands::Signup {} => {
@@ -144,21 +140,16 @@ async fn run() -> Result<CommandResult> {
             );
 
             match process_signup(SignupArgs { username, password }).await {
-                Ok(_) => {
-                    return Ok(CommandResult {
-                        spinner: spinner,
-                        symbol: "✅".to_owned(),
-                        msg: "You are signed up! Check your email to confirm your account."
-                            .to_owned(),
-                    });
-                }
-                Err(e) => {
-                    return Ok(CommandResult {
-                        spinner: spinner,
-                        symbol: "❌".to_owned(),
-                        msg: format!("Failed to signup: {}", e),
-                    });
-                }
+                Ok(_) => Ok(CommandResult {
+                    spinner,
+                    symbol: "✅".to_owned(),
+                    msg: "You are signed up! Check your email to confirm your account.".to_owned(),
+                }),
+                Err(e) => Ok(CommandResult {
+                    spinner,
+                    symbol: "❌".to_owned(),
+                    msg: format!("Failed to signup: {e}"),
+                }),
             }
         }
     }
