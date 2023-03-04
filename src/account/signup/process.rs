@@ -2,7 +2,7 @@ use anyhow::{anyhow, Result};
 use reqwest::Client;
 use serde::Serialize;
 
-use crate::{constants::BASE_URL, login::User};
+use crate::{account::model::User, constants::BASE_URL};
 pub struct SignupArgs {
     pub username: String,
     pub password: String,

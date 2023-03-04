@@ -6,10 +6,12 @@ use console::style;
 use dialoguer::{theme::ColorfulTheme, Input, Password};
 use regex::Regex;
 use smbpndk_cli::{
+    account::{
+        login::{process_login, LoginArgs},
+        signup::{process_signup, SignupArgs},
+    },
     cli::{Cli, Commands},
     constants::ERROR_EMOJI,
-    login::{process_login, LoginArgs},
-    signup::{process_signup, SignupArgs},
 };
 use spinners::Spinner;
 

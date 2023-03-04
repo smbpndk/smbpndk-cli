@@ -7,7 +7,7 @@ use anyhow::{anyhow, Result};
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 
-use crate::constants::BASE_URL;
+use crate::{account::model::User, constants::BASE_URL};
 
 pub struct LoginArgs {
     pub username: String,
@@ -17,12 +17,6 @@ pub struct LoginArgs {
 #[derive(Debug, Serialize)]
 struct LoginParams {
     user: User,
-}
-
-#[derive(Debug, Serialize)]
-pub struct User {
-    pub(crate) email: String,
-    pub(crate) password: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
