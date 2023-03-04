@@ -7,7 +7,11 @@ use anyhow::{anyhow, Result};
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 
-use crate::{account::model::User, constants::BASE_URL};
+use crate::{
+    account::model::{Data, Status, User},
+    constants::BASE_URL,
+    debug,
+};
 
 pub struct LoginArgs {
     pub username: String,
@@ -23,34 +27,6 @@ struct LoginParams {
 struct LoginResult {
     status: Status,
     data: Data,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-struct Status {
-    code: i32,
-    message: String,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-struct Data {
-    id: i32,
-    email: String,
-    created_at: String,
-}
-
-macro_rules! debug {
-    ($($e:expr),+) => {
-        {
-            #[cfg(debug_assertions)]
-            {
-                dbg!($($e),+)
-            }
-            #[cfg(not(debug_assertions))]
-            {
-                ($($e),+)
-            }
-        }
-    };
 }
 
 pub async fn process_login(args: LoginArgs) -> Result<()> {
