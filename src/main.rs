@@ -4,11 +4,17 @@ use anyhow::{anyhow, Result};
 use clap::Parser;
 use console::style;
 use dialoguer::{theme::ColorfulTheme, Input, Password};
+use regex::Regex;
 use smbpndk_cli::{
+    account::{
+        login::{process_login, LoginArgs},
+        signup::{process_signup, SignupArgs},
+    },
     cli::{Cli, Commands},
-    constants::{ERROR_EMOJI, OK_EMOJI},
-    login::{process_login, LoginArgs},
+    constants::ERROR_EMOJI,
 };
+use spinners::Spinner;
+
 use tracing::subscriber::set_global_default;
 use tracing_bunyan_formatter::{BunyanFormattingLayer, JsonStorageLayer};
 use tracing_subscriber::{filter::LevelFilter, prelude::*, EnvFilter};
@@ -44,8 +50,9 @@ fn setup_logging(level: Option<EnvFilter>) -> Result<()> {
 #[tokio::main]
 async fn main() {
     match run().await {
-        Ok(_) => {
-            println!("\n{} {}", OK_EMOJI, style("Command successful.").green());
+        Ok(result) => {
+            let mut spinner = result.spinner;
+            spinner.stop_and_persist(&result.symbol, result.msg);
         }
         Err(e) => {
             println!("\n{} {}", ERROR_EMOJI, style(e).red());
@@ -54,10 +61,16 @@ async fn main() {
     }
 }
 
-async fn run() -> Result<()> {
+struct CommandResult {
+    spinner: Spinner,
+    symbol: String,
+    msg: String,
+}
+
+async fn run() -> Result<CommandResult> {
     let cli = Cli::parse();
 
-    let log_level_error: Result<()> = Err(anyhow!(
+    let log_level_error: Result<CommandResult> = Err(anyhow!(
         "Invalid log level: {:?}.\n Valid levels are: trace, debug, info, warn, and error.",
         cli.log_level
     ));
@@ -84,9 +97,62 @@ async fn run() -> Result<()> {
                 .interact()
                 .unwrap();
 
-            process_login(LoginArgs { username, password }).await?;
+            let spinner = Spinner::new(
+                spinners::Spinners::SimpleDotsScrolling,
+                style("Logging in...").green().bold().to_string(),
+            );
+
+            match process_login(LoginArgs { username, password }).await {
+                Ok(_) => Ok(CommandResult {
+                    spinner,
+                    symbol: "✅".to_owned(),
+                    msg: "You are logged in!".to_owned(),
+                }),
+                Err(e) => Ok(CommandResult {
+                    spinner,
+                    symbol: "❌".to_owned(),
+                    msg: format!("Failed to login: {e}"),
+                }),
+            }
+        }
+        Commands::Signup {} => {
+            println!("Use your email address as your username.");
+            let username = Input::<String>::with_theme(&ColorfulTheme::default())
+                .with_prompt("Username")
+                .validate_with(|input: &String| -> Result<(), &str> {
+                    let email_regex = Regex::new(r"^([a-z0-9_+]([a-z0-9_+.]*[a-z0-9_+])?)@([a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,6})").unwrap();
+
+                    if email_regex.is_match(input) {
+                        Ok(())
+                    } else {
+                        Err("Username must be an email address")
+                    }
+                })
+                .interact()
+                .unwrap();
+            let password = Password::with_theme(&ColorfulTheme::default())
+                .with_prompt("Password")
+                .with_confirmation("Confirm password", "Passwords do not match")
+                .interact()
+                .unwrap();
+
+            let spinner = Spinner::new(
+                spinners::Spinners::BouncingBall,
+                style("Signing up...").green().bold().to_string(),
+            );
+
+            match process_signup(SignupArgs { username, password }).await {
+                Ok(_) => Ok(CommandResult {
+                    spinner,
+                    symbol: "✅".to_owned(),
+                    msg: "You are signed up! Check your email to confirm your account.".to_owned(),
+                }),
+                Err(e) => Ok(CommandResult {
+                    spinner,
+                    symbol: "❌".to_owned(),
+                    msg: format!("Failed to signup: {e}"),
+                }),
+            }
         }
     }
-
-    Ok(())
 }
