@@ -140,8 +140,7 @@ checksum = "5827cebf4670468b8772dd191856768aedcb1b0278a04f989f7766351917b9dc"
 [[package]]
 name = "dialoguer"
 version = "0.10.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "af3c796f3b0b408d9fd581611b47fa850821fcb84aa640b83a3c1a5be2d691f2"
+source = "git+https://github.com/qt2/dialoguer.git?branch=password_validation#09e2ff16a4570bf6c250538ad244eff580245329"
 dependencies = [
  "console",
  "shell-words",

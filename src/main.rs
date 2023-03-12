@@ -132,6 +132,13 @@ async fn run() -> Result<CommandResult> {
                 .unwrap();
             let password = Password::with_theme(&ColorfulTheme::default())
                 .with_prompt("Password")
+                .validate_with(|input: &String| -> Result<(), &str> {
+                    if input.len() >= 6 {
+                        Ok(())
+                    } else {
+                        Err("Password must be at least 6 characters")
+                    }
+                })
                 .with_confirmation("Confirm password", "Passwords do not match")
                 .interact()
                 .unwrap();
