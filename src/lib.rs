@@ -1,4 +1,5 @@
 pub mod account;
 pub mod cli;
 pub mod constants;
-mod util;
+pub mod projects;
+pub mod util;

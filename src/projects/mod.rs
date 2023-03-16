@@ -1,0 +1,65 @@
+use anyhow::Result;
+use clap::Subcommand;
+use console::style;
+use spinners::Spinner;
+
+use crate::util::CommandResult;
+
+#[derive(Subcommand)]
+pub enum Commands {
+    #[clap(about = "Add new project.")]
+    New {
+        /// Project name
+        #[clap(short, long, global = true)]
+        name: Option<String>,
+    },
+
+    #[clap(about = "List all your projects.")]
+    List {},
+
+    #[clap(about = "Show detail of a project.")]
+    Show {
+        /// Project name
+        #[clap(short, long, required = true)]
+        name: String,
+    },
+
+    #[clap(about = "Delete a project.")]
+    Delete {},
+}
+
+pub fn process(commands: Commands) -> Result<CommandResult> {
+    let spinner = Spinner::new(
+        spinners::Spinners::SimpleDotsScrolling,
+        style("Logging in...").green().bold().to_string(),
+    );
+    match commands {
+        Commands::New { name } => {
+            let project_name = match name {
+                Some(name) => name,
+                None => "tempe-goreng".to_owned(),
+            };
+
+            Ok(CommandResult {
+                spinner,
+                symbol: "✅".to_owned(),
+                msg: format!("Creating a project {project_name}."),
+            })
+        }
+        Commands::List {} => Ok(CommandResult {
+            spinner,
+            symbol: "✅".to_owned(),
+            msg: "You are signed up! Check your email to confirm your account.".to_owned(),
+        }),
+        Commands::Show { name } => Ok(CommandResult {
+            spinner,
+            symbol: "✅".to_owned(),
+            msg: format!("Showing project {name}."),
+        }),
+        Commands::Delete {} => Ok(CommandResult {
+            spinner,
+            symbol: "✅".to_owned(),
+            msg: "You are signed up! Check your email to confirm your account.".to_owned(),
+        }),
+    }
+}

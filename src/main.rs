@@ -12,6 +12,8 @@ use smbpndk_cli::{
     },
     cli::{Cli, Commands},
     constants::ERROR_EMOJI,
+    projects,
+    util::CommandResult,
 };
 use spinners::Spinner;
 
@@ -59,12 +61,6 @@ async fn main() {
             std::process::exit(1);
         }
     }
-}
-
-struct CommandResult {
-    spinner: Spinner,
-    symbol: String,
-    msg: String,
 }
 
 async fn run() -> Result<CommandResult> {
@@ -161,5 +157,6 @@ async fn run() -> Result<CommandResult> {
                 }),
             }
         }
+        Commands::Projects { command } => projects::process(command),
     }
 }
