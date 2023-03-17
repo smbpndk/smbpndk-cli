@@ -1,9 +1,13 @@
+mod crud;
+
 use anyhow::Result;
 use clap::Subcommand;
 use console::style;
 use spinners::Spinner;
 
 use crate::util::CommandResult;
+
+use self::crud::get_all;
 
 #[derive(Subcommand)]
 pub enum Commands {
@@ -25,10 +29,14 @@ pub enum Commands {
     },
 
     #[clap(about = "Delete a project.")]
-    Delete {},
+    Delete {
+        /// Project name
+        #[clap(short, long, required = true)]
+        name: String,
+    },
 }
 
-pub fn process(commands: Commands) -> Result<CommandResult> {
+pub async fn process(commands: Commands) -> Result<CommandResult> {
     let spinner = Spinner::new(
         spinners::Spinners::SimpleDotsScrolling,
         style("Logging in...").green().bold().to_string(),
@@ -46,20 +54,36 @@ pub fn process(commands: Commands) -> Result<CommandResult> {
                 msg: format!("Creating a project {project_name}."),
             })
         }
-        Commands::List {} => Ok(CommandResult {
-            spinner,
-            symbol: "✅".to_owned(),
-            msg: "You are signed up! Check your email to confirm your account.".to_owned(),
-        }),
+        Commands::List {} => {
+            // Get all
+            match get_all().await {
+                Ok(projects) => {
+                    println!("Projects: {:#?}", projects);
+                    Ok(CommandResult {
+                        spinner,
+                        symbol: "✅".to_owned(),
+                        msg: "Showing all projects.".to_owned(),
+                    })
+                }
+                Err(e) => {
+                    println!("Error: {:#?}", e);
+                    Ok(CommandResult {
+                        spinner,
+                        symbol: "❌".to_owned(),
+                        msg: "Failed to get all projects.".to_owned(),
+                    })
+                }
+            }
+        }
         Commands::Show { name } => Ok(CommandResult {
             spinner,
             symbol: "✅".to_owned(),
             msg: format!("Showing project {name}."),
         }),
-        Commands::Delete {} => Ok(CommandResult {
+        Commands::Delete { name } => Ok(CommandResult {
             spinner,
             symbol: "✅".to_owned(),
-            msg: "You are signed up! Check your email to confirm your account.".to_owned(),
+            msg: format!("Deleting project {name}."),
         }),
     }
 }

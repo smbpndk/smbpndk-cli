@@ -14,6 +14,7 @@ name = "smb"
 path = "src/main.rs"
 
 [dependencies]
+dirs = "4.0.0"
 anyhow = "1.0.58"
 clap = { version = "4.1.6", features = ["derive"] }
 console = "0.15.0"

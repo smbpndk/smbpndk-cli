@@ -157,6 +157,6 @@ async fn run() -> Result<CommandResult> {
                 }),
             }
         }
-        Commands::Projects { command } => projects::process(command),
+        Commands::Projects { command } => projects::process(command).await,
     }
 }
