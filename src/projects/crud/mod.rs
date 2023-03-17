@@ -1,7 +1,7 @@
 use crate::{constants::BASE_URL, debug};
 use anyhow::{anyhow, Result};
 use reqwest::Client;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Debug)]
 pub struct Project {
@@ -9,6 +9,11 @@ pub struct Project {
     pub name: String,
     pub created_at: String,
     pub updated_at: String,
+}
+#[derive(Serialize, Debug)]
+pub struct ProjectCreate {
+    pub name: String,
+    pub description: String,
 }
 
 pub async fn get_all() -> Result<Vec<Project>> {
@@ -29,6 +34,30 @@ pub async fn get_all() -> Result<Vec<Project>> {
         _ => {
             debug!("Failed to get all projects.", response.status());
             Err(anyhow!("Failed to fetch projects."))
+        }
+    }
+}
+
+pub async fn create_project(project: ProjectCreate) -> Result<Project> {
+    // Get current token
+    let token = get_token().await.unwrap();
+
+    let response = Client::new()
+        .post([BASE_URL, "v1/projects"].join(""))
+        .json(&project)
+        .header("Authorization", token)
+        .send()
+        .await?;
+
+    match response.status() {
+        reqwest::StatusCode::CREATED => {
+            let project: Project = response.json().await?;
+            println!("Project created: {:#?}", project);
+            Ok(project)
+        }
+        _ => {
+            debug!("Failed to create a project.", response.status());
+            Err(anyhow!("Failed to create a project."))
         }
     }
 }
