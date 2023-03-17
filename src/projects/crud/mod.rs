@@ -5,10 +5,10 @@ use serde::Deserialize;
 
 #[derive(Deserialize, Debug)]
 pub struct Project {
-    id: i32,
-    name: String,
-    created_at: String,
-    updated_at: String,
+    pub id: i32,
+    pub name: String,
+    pub created_at: String,
+    pub updated_at: String,
 }
 
 pub async fn get_all() -> Result<Vec<Project>> {
@@ -28,7 +28,7 @@ pub async fn get_all() -> Result<Vec<Project>> {
         }
         _ => {
             debug!("Failed to get all projects.", response.status());
-            Err(anyhow!("Failed to login."))
+            Err(anyhow!("Failed to fetch projects."))
         }
     }
 }

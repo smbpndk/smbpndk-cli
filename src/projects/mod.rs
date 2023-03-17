@@ -39,7 +39,7 @@ pub enum Commands {
 pub async fn process(commands: Commands) -> Result<CommandResult> {
     let spinner = Spinner::new(
         spinners::Spinners::SimpleDotsScrolling,
-        style("Logging in...").green().bold().to_string(),
+        style("Loading...").green().bold().to_string(),
     );
     match commands {
         Commands::New { name } => {
@@ -59,6 +59,16 @@ pub async fn process(commands: Commands) -> Result<CommandResult> {
             match get_all().await {
                 Ok(projects) => {
                     println!("Projects: {:#?}", projects);
+                    println!(
+                        "{0: <5} | {1: <20} | {2: <30} | {3: <30}",
+                        "ID", "Name", "Created at", "Updated at"
+                    );
+                    for project in projects {
+                        println!(
+                            "{0: <5} | {1: <20} | {2: <30} | {3: <30}",
+                            project.id, project.name, project.created_at, project.updated_at
+                        );
+                    }
                     Ok(CommandResult {
                         spinner,
                         symbol: "✅".to_owned(),
