@@ -1,5 +1,7 @@
 use clap::{Parser, Subcommand};
 
+use crate::projects;
+
 #[derive(Parser)]
 #[clap(author, version, about)]
 pub struct Cli {
@@ -20,4 +22,9 @@ pub enum Commands {
         about = "Login to your account. To create an account, use smb signup or visit https://smbpndk.com"
     )]
     Login {},
+    #[clap(about = "Manage your projects. Add, delete, edit. Need authentication.")]
+    Projects {
+        #[clap(subcommand)]
+        command: projects::Commands,
+    },
 }
