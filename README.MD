@@ -2,6 +2,27 @@
 
 This is a CLI program to access https://smbpndk.com/.
 
+## Installation
+
+With Cargo:
+
+```bash
+cargo install smbpndk-cli
+```
+
+With Homebrew (MacOS):
+
+```bash
+brew tap smbpndk/tap
+brew install cli
+```
+
+Usage:
+
+```bash
+smb --help
+```
+
 ## Contribution
 
 - Setup your Rust tooling.
