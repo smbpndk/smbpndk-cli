@@ -12,6 +12,8 @@ use smbpndk_cli::{
     },
     cli::{Cli, Commands},
     constants::ERROR_EMOJI,
+    projects,
+    util::CommandResult,
 };
 use spinners::Spinner;
 
@@ -59,12 +61,6 @@ async fn main() {
             std::process::exit(1);
         }
     }
-}
-
-struct CommandResult {
-    spinner: Spinner,
-    symbol: String,
-    msg: String,
 }
 
 async fn run() -> Result<CommandResult> {
@@ -132,6 +128,13 @@ async fn run() -> Result<CommandResult> {
                 .unwrap();
             let password = Password::with_theme(&ColorfulTheme::default())
                 .with_prompt("Password")
+                .validate_with(|input: &String| -> Result<(), &str> {
+                    if input.len() >= 6 {
+                        Ok(())
+                    } else {
+                        Err("Password must be at least 6 characters")
+                    }
+                })
                 .with_confirmation("Confirm password", "Passwords do not match")
                 .interact()
                 .unwrap();
@@ -154,5 +157,6 @@ async fn run() -> Result<CommandResult> {
                 }),
             }
         }
+        Commands::Projects { command } => projects::process(command).await,
     }
 }

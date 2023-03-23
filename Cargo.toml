@@ -14,10 +14,11 @@ name = "smb"
 path = "src/main.rs"
 
 [dependencies]
+dirs = "4.0.0"
 anyhow = "1.0.58"
 clap = { version = "4.1.6", features = ["derive"] }
 console = "0.15.0"
-dialoguer = "0.10.3"
+dialoguer = { git = "https://github.com/qt2/dialoguer.git", branch ="password_validation", package = "dialoguer" }
 home = "0.5.4"
 regex = "1.3.1"
 reqwest = { version = "0.11", features = ["json"] }
