@@ -1,6 +1,6 @@
 # smbpndk-cli
 
-This is a CLI program to access https://smbpndk.com/.
+This is a CLI program to access [SmbPndk](https://smbpndk.com/).
 
 ## Contribution
 
