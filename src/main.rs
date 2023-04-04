@@ -2,16 +2,15 @@ use std::{fs::OpenOptions, path::PathBuf, str::FromStr};
 
 use anyhow::{anyhow, Result};
 use clap::Parser;
-use console::style;
-use dialoguer::{theme::ColorfulTheme, Input, Password};
-use regex::Regex;
+use console::{style, Term};
+use dialoguer::{theme::ColorfulTheme, Input, Password, Select};
+
 use smbpndk_cli::{
     account::{
         login::{process_login, LoginArgs},
-        signup::{process_signup, SignupArgs},
+        signup::{signup_with_email, signup_with_github, SignupMethod},
     },
     cli::{Cli, Commands},
-    constants::ERROR_EMOJI,
     projects,
     util::CommandResult,
 };
@@ -55,9 +54,14 @@ async fn main() {
         Ok(result) => {
             let mut spinner = result.spinner;
             spinner.stop_and_persist(&result.symbol, result.msg);
+            std::process::exit(1);
         }
         Err(e) => {
-            println!("\n{} {}", ERROR_EMOJI, style(e).red());
+            println!(
+                "\n{} {}",
+                style("✘".to_string()).for_stderr().red(),
+                style(e).red()
+            );
             std::process::exit(1);
         }
     }
@@ -112,49 +116,17 @@ async fn run() -> Result<CommandResult> {
             }
         }
         Commands::Signup {} => {
-            println!("Use your email address as your username.");
-            let username = Input::<String>::with_theme(&ColorfulTheme::default())
-                .with_prompt("Username")
-                .validate_with(|input: &String| -> Result<(), &str> {
-                    let email_regex = Regex::new(r"^([a-z0-9_+]([a-z0-9_+.]*[a-z0-9_+])?)@([a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,6})").unwrap();
-
-                    if email_regex.is_match(input) {
-                        Ok(())
-                    } else {
-                        Err("Username must be an email address")
-                    }
-                })
-                .interact()
-                .unwrap();
-            let password = Password::with_theme(&ColorfulTheme::default())
-                .with_prompt("Password")
-                .validate_with(|input: &String| -> Result<(), &str> {
-                    if input.len() >= 6 {
-                        Ok(())
-                    } else {
-                        Err("Password must be at least 6 characters")
-                    }
-                })
-                .with_confirmation("Confirm password", "Passwords do not match")
-                .interact()
+            let signup_methods = vec![SignupMethod::Email, SignupMethod::GitHub];
+            let selection = Select::with_theme(&ColorfulTheme::default())
+                .items(&signup_methods)
+                .default(0)
+                .interact_on_opt(&Term::stderr())
+                .map(|i| signup_methods[i.unwrap()])
                 .unwrap();
 
-            let spinner = Spinner::new(
-                spinners::Spinners::BouncingBall,
-                style("Signing up...").green().bold().to_string(),
-            );
-
-            match process_signup(SignupArgs { username, password }).await {
-                Ok(_) => Ok(CommandResult {
-                    spinner,
-                    symbol: "✅".to_owned(),
-                    msg: "You are signed up! Check your email to confirm your account.".to_owned(),
-                }),
-                Err(e) => Ok(CommandResult {
-                    spinner,
-                    symbol: "❌".to_owned(),
-                    msg: format!("Failed to signup: {e}"),
-                }),
+            match selection {
+                SignupMethod::Email => signup_with_email(None).await,
+                SignupMethod::GitHub => signup_with_github().await,
             }
         }
         Commands::Projects { command } => projects::process(command).await,
