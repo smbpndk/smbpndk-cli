@@ -17,7 +17,7 @@ path = "src/main.rs"
 anyhow = "1.0.58"
 clap = { version = "4.1.6", features = ["derive"] }
 console = "0.15.0"
-dialoguer = { git = "https://github.com/qt2/dialoguer.git", branch = "password_validation", package = "dialoguer" }
+dialoguer = { git = "https://github.com/console-rs/dialoguer", package = "dialoguer" }
 dirs = "4.0.0"
 dotenv = "0.15.0"
 home = "0.5.4"

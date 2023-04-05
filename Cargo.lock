@@ -140,7 +140,7 @@ checksum = "5827cebf4670468b8772dd191856768aedcb1b0278a04f989f7766351917b9dc"
 [[package]]
 name = "dialoguer"
 version = "0.10.3"
-source = "git+https://github.com/qt2/dialoguer.git?branch=password_validation#09e2ff16a4570bf6c250538ad244eff580245329"
+source = "git+https://github.com/console-rs/dialoguer#d588da3df12175b414465919f3fa27c61353886b"
 dependencies = [
  "console",
  "shell-words",
