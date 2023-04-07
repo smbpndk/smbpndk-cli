@@ -1,8 +1,8 @@
 {
-    "name": "smbpndk-cli",
+    "name": "@smbpndk/cli",
     "version": "0.1.0",
     "bin": "lib/index.js",
-    "description": "A CLI for the smbpndk package",
+    "description": "A CLI for accessing the SmbPndk platform.",
     "license": "MIT",
     "scripts": {
         "typecheck": "tsc --noEmit",
