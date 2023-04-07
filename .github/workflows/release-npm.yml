@@ -1,9 +1,6 @@
 name: Publish to npm
 
-on:
-  push:
-    tags:
-      - "v*.*.*"
+on: push
 
 jobs:
   publish-npm-binaries:
