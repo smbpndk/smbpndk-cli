@@ -21,7 +21,7 @@ function getExePath() {
 
     try {
         // Since the binary will be located inside `node_modules`, we can simply call `require.resolve`
-        return require.resolve(`cli-${os}-${arch}/bin/cli${extension}`);
+        return require.resolve(`cli-${os}-${arch}/bin/smb${extension}`);
     } catch (e) {
         throw new Error(
             `Couldn't find application binary inside node_modules for ${os}-${arch}`
