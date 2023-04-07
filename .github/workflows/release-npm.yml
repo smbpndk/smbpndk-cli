@@ -57,23 +57,16 @@ jobs:
         shell: bash
         run: echo "RELEASE_VERSION=${GITHUB_REF:11}" >> $GITHUB_ENV
 
-      - name: Install Rust toolchain
+      - name: Install toolkit and build
         uses: dtolnay/rust-toolchain@stable
         with:
           target: ${{ matrix.build.TARGET }}
-          override: true
-
-      - name: Build
-        uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --release --locked --target ${{ matrix.build.TARGET }}
-          use-cross: ${{ matrix.build.OS == 'ubuntu-20.04' }} # use `cross` for Linux builds
+        run: cargo build --release --locked --target ${{ matrix.build.TARGET }}
 
       - name: Install node
         uses: actions/setup-node@v3
         with:
-          node-version: "16"
+          node-version: "18"
           registry-url: "https://registry.npmjs.org"
 
       - name: Publish to NPM
