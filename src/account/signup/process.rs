@@ -288,9 +288,9 @@ fn select_github_emails(github_emails: Vec<GithubEmail>) -> Result<GithubEmail> 
 }
 
 fn github_url_builder() -> URLBuilder {
-    let client_id = dotenv::var("GITHUB_OAUTH_CLIENT_ID").unwrap_or("development".to_owned());
+    let client_id = dotenv::var("GH_OAUTH_CLIENT_ID").unwrap_or("development".to_owned());
     let redirect_uri =
-        dotenv::var("GITHUB_OAUTH_REDIRECT_URI").unwrap_or("http://localhost:8808/".to_owned());
+        dotenv::var("GH_OAUTH_REDIRECT_URI").unwrap_or("http://localhost:8808/".to_owned());
     let mut url_builder = URLBuilder::new();
     url_builder
         .set_protocol("https")
@@ -310,8 +310,7 @@ fn build_github_oauth_url() -> String {
 }
 
 fn build_github_access_token_url(code: String) -> String {
-    let client_secret =
-        dotenv::var("GITHUB_OAUTH_CLIENT_SECRET").unwrap_or("development".to_owned());
+    let client_secret = dotenv::var("GH_OAUTH_CLIENT_SECRET").unwrap_or("development".to_owned());
     let mut url_builder = github_url_builder();
     url_builder
         .add_route("login/oauth/access_token")

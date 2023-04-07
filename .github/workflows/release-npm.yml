@@ -9,6 +9,10 @@ jobs:
   publish-npm-binaries:
     name: Publish NPM packages
     runs-on: ${{ matrix.build.os }}
+    env:
+      GH_OAUTH_CLIENT_ID: ${{ secrets.GH_OAUTH_CLIENT_ID }}
+      GH_OAUTH_CLIENT_SECRET: ${{ secrets.GH_OAUTH_CLIENT_SECRET }}
+      GH_OAUTH_REDIRECT_URI: ${{ env.GH_OAUTH_REDIRECT_URI }}
     strategy:
       fail-fast: false
       matrix:
