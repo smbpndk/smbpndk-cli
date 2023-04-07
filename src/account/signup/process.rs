@@ -288,9 +288,10 @@ fn select_github_emails(github_emails: Vec<GithubEmail>) -> Result<GithubEmail> 
 }
 
 fn github_url_builder() -> URLBuilder {
-    let client_id = dotenv::var("GH_OAUTH_CLIENT_ID").unwrap_or("development".to_owned());
-    let redirect_uri =
-        dotenv::var("GH_OAUTH_REDIRECT_URI").unwrap_or("http://localhost:8808/".to_owned());
+    let client_id =
+        dotenv::var("GH_OAUTH_CLIENT_ID").unwrap_or("Please set GH_OAUTH_CLIENT_ID".to_owned());
+    let redirect_uri = dotenv::var("GH_OAUTH_REDIRECT_URI")
+        .unwrap_or("Please set GH_OAUTH_REDIRECT_URI".to_owned());
     let mut url_builder = URLBuilder::new();
     url_builder
         .set_protocol("https")

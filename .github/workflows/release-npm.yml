@@ -8,9 +8,6 @@ on:
 jobs:
   publish-npm-binaries:
     name: Publish NPM packages
-    env:
-      GH_OAUTH_CLIENT_ID: ${{ secrets.GH_OAUTH_CLIENT_ID }}
-      GH_OAUTH_CLIENT_SECRET: ${{ secrets.GH_OAUTH_CLIENT_SECRET }}
     runs-on: ${{ matrix.build.os }}
     strategy:
       fail-fast: false
@@ -68,6 +65,9 @@ jobs:
           toolchain: ${{ matrix.build.TOOLCHAIN}}
 
       - name: Build
+        env:
+          GH_OAUTH_CLIENT_ID: ${{ secrets.GH_OAUTH_CLIENT_ID }}
+          GH_OAUTH_CLIENT_SECRET: ${{ secrets.GH_OAUTH_CLIENT_SECRET }}
         shell: bash
         run: cargo build --release --locked --target ${{ matrix.build.TARGET }}
 
