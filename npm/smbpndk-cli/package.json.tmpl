@@ -1,7 +1,9 @@
 {
     "name": "@smbpndk/cli",
-    "version": "0.1.0",
-    "bin": "lib/index.js",
+    "version": "${release_version}",
+    "bin": {
+        "smb": "lib/index.js"
+    },
     "description": "A CLI for accessing the SmbPndk platform.",
     "license": "MIT",
     "scripts": {
@@ -16,14 +18,13 @@
         "@typescript-eslint/eslint-plugin": "^5.48.0",
         "@typescript-eslint/parser": "^5.48.0",
         "eslint": "^8.31.0",
-        "typescript": "^4.9.4"
+        "typescript": "^5.0.0"
     },
     "optionalDependencies": {
-        "app-darwin-arm64": "0.1.0",
-        "app-darwin-x64": "0.1.0",
-        "app-linux-arm64": "0.1.0",
-        "app-linux-x64": "0.1.0",
-        "app-windows-arm64": "0.1.0",
-        "app-windows-x64": "0.1.0"
+        "@smbpndk/cli-darwin-arm64": "${release_version}",
+        "@smbpndk/cli-darwin-x64": "${release_version}",
+        "@smbpndk/cli-linux-x64": "${release_version}",
+        "@smbpndk/cli-windows-arm64": "${release_version}",
+        "@smbpndk/cli-windows-x64": "${release_version}"
     }
 }
