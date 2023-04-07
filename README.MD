@@ -2,7 +2,9 @@
 
 This is a CLI program to access [SmbPndk](https://smbpndk.com/).
 
-## Installation
+## Install
+
+One can install this program in different ways. 
 
 With Cargo:
 
@@ -10,11 +12,32 @@ With Cargo:
 cargo install smbpndk-cli
 ```
 
-With Homebrew (MacOS):
+Homebrew (MacOS):
 
 ```bash
 brew tap smbpndk/tap
 brew install cli
+```
+
+With NPM
+
+```
+```
+
+## Uninstall
+
+```bash
+
+# With cargo
+cargo uninstall smbpndk-cli
+
+# With npm
+
+
+
+# With Homebrew
+brew untap smbpndk/tap 
+brew uninstall smbpndk/tap/cli
 ```
 
 Usage:
