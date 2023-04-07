@@ -19,12 +19,13 @@ jobs:
               TOOLCHAIN: stable,
               TARGET: x86_64-unknown-linux-gnu,
             }
-          - {
-              NAME: linux-arm64-glibc,
-              OS: ubuntu-20.04,
-              TOOLCHAIN: stable,
-              TARGET: aarch64-unknown-linux-gnu,
-            }
+          # Cannot cross-compile for now
+          #- {
+          #    NAME: linux-arm64-glibc,
+          #    OS: ubuntu-20.04,
+          #    TOOLCHAIN: stable,
+          #    TARGET: aarch64-unknown-linux-gnu,
+          #  }
           - {
               NAME: win32-x64-msvc,
               OS: windows-2022,
@@ -58,9 +59,10 @@ jobs:
         run: echo "RELEASE_VERSION=${GITHUB_REF:11}" >> $GITHUB_ENV
 
       - name: Install toolkit
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@master
         with:
           targets: ${{ matrix.build.TARGET }}
+          toolchain: ${{ matrix.build.TOOLCHAIN}}
 
       - name: Build
         shell: bash
