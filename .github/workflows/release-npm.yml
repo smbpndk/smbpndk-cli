@@ -62,10 +62,6 @@ jobs:
         with:
           target: ${{ matrix.build.TARGET }}
 
-      - name: Install lib-ssl-dev
-        shell: bash
-        run: sudo apt install libssl-dev
-
       - name: Build
         shell: bash
         run: cargo build --release --locked --target ${{ matrix.build.TARGET }}
