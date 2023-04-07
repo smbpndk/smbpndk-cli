@@ -22,6 +22,7 @@ brew install cli
 With NPM
 
 ```
+npm i -g @smbpndk/cli
 ```
 
 ## Uninstall
@@ -32,8 +33,7 @@ With NPM
 cargo uninstall smbpndk-cli
 
 # With npm
-
-
+npm uninstall -g @smbpndk/cli
 
 # With Homebrew
 brew untap smbpndk/tap 
