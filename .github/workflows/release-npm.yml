@@ -57,10 +57,13 @@ jobs:
         shell: bash
         run: echo "RELEASE_VERSION=${GITHUB_REF:11}" >> $GITHUB_ENV
 
-      - name: Install toolkit and build
+      - name: Install toolkit
         uses: dtolnay/rust-toolchain@stable
         with:
           target: ${{ matrix.build.TARGET }}
+
+      - name: Build
+        shell: bash
         run: cargo build --release --locked --target ${{ matrix.build.TARGET }}
 
       - name: Install node
