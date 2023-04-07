@@ -62,7 +62,7 @@ pub async fn process(commands: Commands) -> Result<CommandResult> {
                     msg: format!("Creating a project {project_name}."),
                 }),
                 Err(e) => {
-                    println!("Error: {:#?}", e);
+                    println!("Error: {e:#?}");
                     Ok(CommandResult {
                         spinner,
                         symbol: "❌".to_owned(),
@@ -80,7 +80,7 @@ pub async fn process(commands: Commands) -> Result<CommandResult> {
             // Get all
             match get_all().await {
                 Ok(projects) => {
-                    println!("Projects: {:#?}", projects);
+                    println!("Projects: {projects:#?}");
                     println!(
                         "{0: <5} | {1: <20} | {2: <30} | {3: <30}",
                         "ID", "Name", "Created at", "Updated at"
@@ -98,7 +98,7 @@ pub async fn process(commands: Commands) -> Result<CommandResult> {
                     })
                 }
                 Err(e) => {
-                    println!("Error: {:#?}", e);
+                    println!("Error: {e:#?}");
                     Ok(CommandResult {
                         spinner,
                         symbol: "❌".to_owned(),

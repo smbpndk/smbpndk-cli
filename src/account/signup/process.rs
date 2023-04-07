@@ -96,7 +96,13 @@ pub async fn signup_with_github() -> Result<CommandResult> {
     // Spin up a simple localhost server to listen for the GitHub OAuth callback
     // setup_oauth_callback_server();
     // Open the GitHub OAuth URL in the user's browser
-    spinner_newline("Getting your GitHub information...".to_owned());
+    let mut spinner = Spinner::new(
+        spinners::Spinners::BouncingBall,
+        style("Getting your GitHub information...")
+            .green()
+            .bold()
+            .to_string(),
+    );
 
     let rx = match open::that(build_github_oauth_url()) {
         Ok(_) => {
@@ -116,6 +122,8 @@ pub async fn signup_with_github() -> Result<CommandResult> {
         }
     };
 
+    spinner.stop_and_persist("⌛", "Waiting for the authorization.".into());
+
     debug!("Waiting for code from channel...");
 
     match rx.recv() {
@@ -125,7 +133,7 @@ pub async fn signup_with_github() -> Result<CommandResult> {
         }
         Err(e) => {
             let error = anyhow!("Failed to get code from channel: {e}");
-            return Err(error);
+            Err(error)
         }
     }
 }
@@ -146,7 +154,7 @@ fn handle_connection(mut stream: TcpStream, tx: Sender<String>) {
 
     let code_regex = Regex::new(r"code=([^&]*)").unwrap();
 
-    let (status_line, filename) = match code_regex.captures(&request_line) {
+    let (status_line, filename) = match code_regex.captures(request_line) {
         Some(group) => {
             let code = group.get(1).unwrap().as_str();
             debug!("Code: {:#?}", code);
@@ -253,8 +261,10 @@ async fn get_github_data(token: String) -> Result<CommandResult> {
         StatusCode::OK => {
             spinner.stop_and_persist("✔", "Finished requesting GitHub token!".into());
             debug!("Response: {:#?}", &response);
-            let emails: Vec<GithubEmail> = response.json().await?;
+            let mut emails: Vec<GithubEmail> = response.json().await?;
             debug!(&emails);
+            emails.retain(|e| !e.email.contains("@users.noreply.github.com"));
+
             let email = select_github_emails(emails)?;
             signup_with_email(Some(email.email)).await
         }
@@ -275,14 +285,6 @@ fn select_github_emails(github_emails: Vec<GithubEmail>) -> Result<GithubEmail> 
         .unwrap()
         .to_owned();
     Ok(selection)
-}
-
-fn spinner_newline(message: String) {
-    Spinner::new(
-        spinners::Spinners::BouncingBall,
-        style(message).green().bold().to_string(),
-    )
-    .stop_with_newline();
 }
 
 fn github_url_builder() -> URLBuilder {
