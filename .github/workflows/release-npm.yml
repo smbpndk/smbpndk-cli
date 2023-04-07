@@ -60,7 +60,7 @@ jobs:
       - name: Install toolkit
         uses: dtolnay/rust-toolchain@stable
         with:
-          target: ${{ matrix.build.TARGET }}
+          targets: ${{ matrix.build.TARGET }}
 
       - name: Build
         shell: bash
