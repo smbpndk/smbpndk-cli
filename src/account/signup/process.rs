@@ -1,4 +1,5 @@
 use std::{
+    env,
     fmt::{Display, Formatter},
     fs,
     io::{BufRead, BufReader, Write},
@@ -289,9 +290,10 @@ fn select_github_emails(github_emails: Vec<GithubEmail>) -> Result<GithubEmail> 
 
 fn github_url_builder() -> URLBuilder {
     let client_id =
-        dotenv::var("GH_OAUTH_CLIENT_ID").unwrap_or("Please set GH_OAUTH_CLIENT_ID".to_owned());
-    let redirect_uri = dotenv::var("GH_OAUTH_REDIRECT_URI")
-        .unwrap_or("Please set GH_OAUTH_REDIRECT_URI".to_owned());
+        env::var("GH_OAUTH_CLIENT_ID").unwrap_or("Please set GH_OAUTH_CLIENT_ID".to_owned());
+    let redirect_uri =
+        env::var("GH_OAUTH_REDIRECT_URI").unwrap_or("Please set GH_OAUTH_REDIRECT_URI".to_owned());
+
     let mut url_builder = URLBuilder::new();
     url_builder
         .set_protocol("https")
@@ -311,7 +313,9 @@ fn build_github_oauth_url() -> String {
 }
 
 fn build_github_access_token_url(code: String) -> String {
-    let client_secret = dotenv::var("GH_OAUTH_CLIENT_SECRET").unwrap_or("development".to_owned());
+    let client_secret = env::var("GH_OAUTH_CLIENT_SECRET")
+        .unwrap_or("Please set GH_OAUTH_CLIENT_SECRET".to_owned());
+
     let mut url_builder = github_url_builder();
     url_builder
         .add_route("login/oauth/access_token")

@@ -1,9 +1,9 @@
-use std::{fs::OpenOptions, path::PathBuf, str::FromStr};
-
 use anyhow::{anyhow, Result};
 use clap::Parser;
 use console::{style, Term};
 use dialoguer::{theme::ColorfulTheme, Input, Password, Select};
+use dotenv::dotenv;
+use std::{fs::OpenOptions, path::PathBuf, str::FromStr};
 
 use smbpndk_cli::{
     account::{
@@ -50,6 +50,7 @@ fn setup_logging(level: Option<EnvFilter>) -> Result<()> {
 
 #[tokio::main]
 async fn main() {
+    dotenv().ok();
     match run().await {
         Ok(result) => {
             let mut spinner = result.spinner;
