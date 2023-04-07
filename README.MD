@@ -35,6 +35,8 @@ This repo is inspired by [Sugar](https://github.com/metaplex-foundation/sugar).
 
 This repo tries to follow [the 12 factor CLI app](https://medium.com/@jdxcode/12-factor-cli-apps-dd3c227a0e46) principles by Heroku team.
 
+NPM support by [orhun.dev](https://blog.orhun.dev/packaging-rust-for-npm/).
+
 ## Licence
 
 MIT.
