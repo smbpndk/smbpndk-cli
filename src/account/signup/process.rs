@@ -81,7 +81,7 @@ pub async fn signup_with_email(email: Option<String>) -> Result<CommandResult> {
     {
         Ok(_) => Ok(CommandResult {
             spinner,
-            symbol: style("✔".to_string()).for_stderr().green().to_string(),
+            symbol: style("✅".to_string()).for_stderr().green().to_string(),
             msg: "You are signed up! Check your email to confirm your account.".to_owned(),
         }),
         Err(e) => Ok(CommandResult {
@@ -98,7 +98,7 @@ pub async fn signup_with_github() -> Result<CommandResult> {
     // Open the GitHub OAuth URL in the user's browser
     let mut spinner = Spinner::new(
         spinners::Spinners::BouncingBall,
-        style("Getting your GitHub information...")
+        style("🚀 Getting your GitHub information...")
             .green()
             .bold()
             .to_string(),
@@ -218,14 +218,14 @@ async fn process_signup_github(code: String) -> Result<CommandResult> {
         .await?;
     let mut spinner = Spinner::new(
         spinners::Spinners::BouncingBall,
-        style("Requesting GitHub token...")
+        style("🚀 Requesting GitHub token...")
             .green()
             .bold()
             .to_string(),
     );
     match response.status() {
         StatusCode::OK => {
-            spinner.stop_and_persist("✔", "Finished requesting GitHub token!".into());
+            spinner.stop_and_persist("✅", "Finished requesting GitHub token!".into());
             debug!("Response: {:#?}", &response);
             let result: GithubToken = response.json().await?;
             debug!("Result: {:#?}", &result);
@@ -242,7 +242,7 @@ async fn process_signup_github(code: String) -> Result<CommandResult> {
 async fn get_github_data(token: String) -> Result<CommandResult> {
     let mut spinner = Spinner::new(
         spinners::Spinners::BouncingBall,
-        style("Requesting GitHub data...")
+        style("🚀 Requesting GitHub data...")
             .green()
             .bold()
             .to_string(),
@@ -259,7 +259,7 @@ async fn get_github_data(token: String) -> Result<CommandResult> {
 
     match response.status() {
         StatusCode::OK => {
-            spinner.stop_and_persist("✔", "Finished requesting GitHub token!".into());
+            spinner.stop_and_persist("✅", "Finished requesting GitHub data!".into());
             debug!("Response: {:#?}", &response);
             let mut emails: Vec<GithubEmail> = response.json().await?;
             debug!(&emails);

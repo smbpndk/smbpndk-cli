@@ -100,7 +100,7 @@ async fn run() -> Result<CommandResult> {
 
             let spinner = Spinner::new(
                 spinners::Spinners::SimpleDotsScrolling,
-                style("Logging in...").green().bold().to_string(),
+                style("⏳ Logging in...").green().bold().to_string(),
             );
 
             match process_login(LoginArgs { username, password }).await {
@@ -111,7 +111,7 @@ async fn run() -> Result<CommandResult> {
                 }),
                 Err(e) => Ok(CommandResult {
                     spinner,
-                    symbol: "❌".to_owned(),
+                    symbol: "😩".to_owned(),
                     msg: format!("Failed to login: {e}"),
                 }),
             }
