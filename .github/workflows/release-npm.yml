@@ -65,8 +65,13 @@ jobs:
           toolchain: ${{ matrix.build.TOOLCHAIN}}
 
       - name: Build
+        env:
+          GH_OAUTH_CLIENT_ID: ${{ secrets.GH_OAUTH_CLIENT_ID }}
+          GH_OAUTH_CLIENT_SECRET: ${{ secrets.GH_OAUTH_CLIENT_SECRET }}
+          GH_OAUTH_REDIRECT_URI: ${{ secrets.GH_OAUTH_REDIRECT_URI }}
         shell: bash
-        run: cargo build --release --locked --target ${{ matrix.build.TARGET }}
+        run: |
+          cargo build --release --locked --target ${{ matrix.build.TARGET }}
 
       - name: Install node
         uses: actions/setup-node@v3
@@ -105,6 +110,8 @@ jobs:
           mkdir -p "${node_pkg}/bin"
           # generate package.json from the template
           envsubst < package.json.tmpl > "${node_pkg}/package.json"
+          # generate readme.md from the template
+          envsubst < README.md.tmpl > "${node_pkg}/README.md"
           # copy the binary into the package
           # note: windows binaries has '.exe' extension
           if [ "${{ matrix.build.OS }}" = "windows-2022" ]; then
@@ -144,7 +151,7 @@ jobs:
           export release_version="${{ env.RELEASE_VERSION }}"
 
           # use the tag version
-          envsubst < package.json.tmpl > "./package.json"
+          envsubst < ../package-main.json.tmpl > "./package.json"
 
           yarn install # requires optional dependencies to be present in the registry
           yarn build

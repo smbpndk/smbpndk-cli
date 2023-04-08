@@ -2,27 +2,32 @@
 
 This is a CLI program to access [SmbPndk](https://smbpndk.com/).
 
-## Install
+## Installation
 
 One can install this program in different ways. 
 
-With Cargo:
+### With Cargo
 
 ```bash
 cargo install smbpndk-cli
 ```
 
-Homebrew (MacOS):
+### Homebrew (MacOS/Linux)
 
 ```bash
 brew tap smbpndk/tap
 brew install cli
 ```
 
-With NPM
+### With NPM
 
 ```
+npm i -g @smbpndk/cli
 ```
+
+## Update
+
+Simply rerun the installation command.
 
 ## Uninstall
 
@@ -32,15 +37,14 @@ With NPM
 cargo uninstall smbpndk-cli
 
 # With npm
-
-
+npm uninstall -g @smbpndk/cli
 
 # With Homebrew
 brew untap smbpndk/tap 
 brew uninstall smbpndk/tap/cli
 ```
 
-Usage:
+## Usage:
 
 ```bash
 smb --help
@@ -50,6 +54,7 @@ smb --help
 
 - Setup your Rust tooling.
 - Clone the repo.
+- Provide the environement variables in the .env.local.
 - Run `cargo run`.
 
 ## Credits

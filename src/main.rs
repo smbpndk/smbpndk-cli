@@ -1,9 +1,9 @@
-use std::{fs::OpenOptions, path::PathBuf, str::FromStr};
-
 use anyhow::{anyhow, Result};
 use clap::Parser;
 use console::{style, Term};
 use dialoguer::{theme::ColorfulTheme, Input, Password, Select};
+use dotenv::dotenv;
+use std::{fs::OpenOptions, path::PathBuf, str::FromStr};
 
 use smbpndk_cli::{
     account::{
@@ -50,6 +50,7 @@ fn setup_logging(level: Option<EnvFilter>) -> Result<()> {
 
 #[tokio::main]
 async fn main() {
+    dotenv().ok();
     match run().await {
         Ok(result) => {
             let mut spinner = result.spinner;
@@ -99,7 +100,7 @@ async fn run() -> Result<CommandResult> {
 
             let spinner = Spinner::new(
                 spinners::Spinners::SimpleDotsScrolling,
-                style("Logging in...").green().bold().to_string(),
+                style("⏳ Logging in...").green().bold().to_string(),
             );
 
             match process_login(LoginArgs { username, password }).await {
@@ -110,7 +111,7 @@ async fn run() -> Result<CommandResult> {
                 }),
                 Err(e) => Ok(CommandResult {
                     spinner,
-                    symbol: "❌".to_owned(),
+                    symbol: "😩".to_owned(),
                     msg: format!("Failed to login: {e}"),
                 }),
             }
