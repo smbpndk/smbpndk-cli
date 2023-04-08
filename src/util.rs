@@ -1,3 +1,5 @@
+use spinners::Spinner;
+
 #[macro_export]
 macro_rules! debug {
     ($($e:expr),+) => {
@@ -12,4 +14,10 @@ macro_rules! debug {
             }
         }
     };
+}
+
+pub struct CommandResult {
+    pub spinner: Spinner,
+    pub symbol: String,
+    pub msg: String,
 }

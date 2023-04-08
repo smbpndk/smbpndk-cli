@@ -1,0 +1,59 @@
+{
+    "name": "@smbpndk/cli",
+    "version": "${release_version}",
+    "keywords": [
+        "smbpndk",
+        "cli",
+        "smb",
+        "pndk",
+        "smbpndk-cli",
+        "cloud",
+        "smbpndk-cloud",
+        "developer",
+        "tools",
+        "web3",
+        "web3js",
+        "web3.js",
+        "web3js",
+        "bitcoin",
+        "btc",
+        "ethereum",
+        "solana",
+        "eth",
+        "sol",
+        "blockchain",
+        "smart-contracts",
+        "dapps",
+        "dapp",
+        "dapp-tools",
+        "dapp-tool",
+        "dapp-toolkit",
+        "dapp-toolkit-cli"
+    ],
+    "bin": {
+        "smb": "lib/index.js"
+    },
+    "description": "A CLI for accessing the SmbPndk platform.",
+    "license": "MIT",
+    "scripts": {
+        "typecheck": "tsc --noEmit",
+        "lint": "eslint .",
+        "lint:fix": "eslint . --fix",
+        "build": "tsc",
+        "dev": "yarn build && node lib/index.js"
+    },
+    "devDependencies": {
+        "@types/node": "^18.15.11",
+        "@typescript-eslint/eslint-plugin": "^5.48.0",
+        "@typescript-eslint/parser": "^5.48.0",
+        "eslint": "^8.31.0",
+        "typescript": "^5.0.0"
+    },
+    "optionalDependencies": {
+        "@smbpndk/cli-darwin-arm64": "${release_version}",
+        "@smbpndk/cli-darwin-x64": "${release_version}",
+        "@smbpndk/cli-linux-x64": "${release_version}",
+        "@smbpndk/cli-windows-arm64": "${release_version}",
+        "@smbpndk/cli-windows-x64": "${release_version}"
+    }
+}

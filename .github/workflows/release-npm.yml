@@ -1,0 +1,160 @@
+name: Publish to npm
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  publish-npm-binaries:
+    name: Publish NPM packages
+    runs-on: ${{ matrix.build.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        build:
+          - {
+              NAME: linux-x64-glibc,
+              OS: ubuntu-20.04,
+              TOOLCHAIN: stable,
+              TARGET: x86_64-unknown-linux-gnu,
+            }
+          # Cannot cross-compile for now
+          #- {
+          #    NAME: linux-arm64-glibc,
+          #    OS: ubuntu-20.04,
+          #    TOOLCHAIN: stable,
+          #    TARGET: aarch64-unknown-linux-gnu,
+          #  }
+          - {
+              NAME: win32-x64-msvc,
+              OS: windows-2022,
+              TOOLCHAIN: stable,
+              TARGET: x86_64-pc-windows-msvc,
+            }
+          - {
+              NAME: win32-arm64-msvc,
+              OS: windows-2022,
+              TOOLCHAIN: stable,
+              TARGET: aarch64-pc-windows-msvc,
+            }
+          - {
+              NAME: darwin-x64,
+              OS: macos-11,
+              TOOLCHAIN: stable,
+              TARGET: x86_64-apple-darwin,
+            }
+          - {
+              NAME: darwin-arm64,
+              OS: macos-11,
+              TOOLCHAIN: stable,
+              TARGET: aarch64-apple-darwin,
+            }
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set the release version
+        shell: bash
+        run: echo "RELEASE_VERSION=${GITHUB_REF:11}" >> $GITHUB_ENV
+
+      - name: Install toolkit
+        uses: dtolnay/rust-toolchain@master
+        with:
+          targets: ${{ matrix.build.TARGET }}
+          toolchain: ${{ matrix.build.TOOLCHAIN}}
+
+      - name: Build
+        env:
+          GH_OAUTH_CLIENT_ID: ${{ secrets.GH_OAUTH_CLIENT_ID }}
+          GH_OAUTH_CLIENT_SECRET: ${{ secrets.GH_OAUTH_CLIENT_SECRET }}
+          GH_OAUTH_REDIRECT_URI: ${{ secrets.GH_OAUTH_REDIRECT_URI }}
+        shell: bash
+        run: |
+          cargo build --release --locked --target ${{ matrix.build.TARGET }}
+
+      - name: Install node
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Publish to NPM
+        shell: bash
+        run: |
+          # We want to name our npm package @smbpndk/cli, but the main command is smb.
+          # This is the tricky part. All the optional dependencies should follow the naming convention.
+          # So, we will generate @smbpndk/cli-${matrix.build.TARGET}
+
+          # Move to the npm directory
+          cd npm
+          # set the binary name, this is from the rust Cargo.toml file
+          cargo_bin="smb"
+          node_pkg_prefix="cli"
+          # derive the OS and architecture from the build matrix name
+          # note: when split by a hyphen, first part is the OS and the second is the architecture
+          node_os=$(echo "${{ matrix.build.NAME }}" | cut -d '-' -f1)
+          export node_os
+          node_arch=$(echo "${{ matrix.build.NAME }}" | cut -d '-' -f2)
+          export node_arch
+          # set the version
+          export node_version="${{ env.RELEASE_VERSION }}"
+          # set the package name
+          # note: use 'windows' as OS name instead of 'win32'
+          if [ "${{ matrix.build.OS }}" = "windows-2022" ]; then
+            export node_pkg="${node_pkg_prefix}-windows-${node_arch}"
+          else
+            export node_pkg="${node_pkg_prefix}-${node_os}-${node_arch}"
+          fi
+          # create the package directory
+          mkdir -p "${node_pkg}/bin"
+          # generate package.json from the template
+          envsubst < package.json.tmpl > "${node_pkg}/package.json"
+          # generate readme.md from the template
+          envsubst < README.md.tmpl > "${node_pkg}/README.md"
+          # copy the binary into the package
+          # note: windows binaries has '.exe' extension
+          if [ "${{ matrix.build.OS }}" = "windows-2022" ]; then
+            cargo_bin="${cargo_bin}.exe"
+          fi
+          cp "../target/${{ matrix.build.TARGET }}/release/${cargo_bin}" "${node_pkg}/bin"
+          # publish the package
+          cd "${node_pkg}"
+          npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  publish-npm-base:
+    name: Publish the base NPM package
+    needs: publish-npm-binaries
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set the release version
+        shell: bash
+        run: echo "RELEASE_VERSION=${GITHUB_REF:11}" >> $GITHUB_ENV
+
+      - name: Install node
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Publish the package
+        shell: bash
+        run: |
+          cd npm/smbpndk-cli
+
+          # set the version
+          export release_version="${{ env.RELEASE_VERSION }}"
+
+          # use the tag version
+          envsubst < ../package-main.json.tmpl > "./package.json"
+
+          yarn install # requires optional dependencies to be present in the registry
+          yarn build
+          npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
