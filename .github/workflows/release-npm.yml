@@ -70,9 +70,6 @@ jobs:
           GH_OAUTH_CLIENT_SECRET: ${{ secrets.GH_OAUTH_CLIENT_SECRET }}
         shell: bash
         run: |
-          echo $(#GH_OAUTH_REDIRECT_URI}
-          echo ${#GH_OAUTH_CLIENT_ID}
-          echo ${#GH_OAUTH_CLIENT_SECRET}
           cargo build --release --locked --target ${{ matrix.build.TARGET }}
 
       - name: Install node
