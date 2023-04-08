@@ -68,6 +68,7 @@ jobs:
         env:
           GH_OAUTH_CLIENT_ID: ${{ secrets.GH_OAUTH_CLIENT_ID }}
           GH_OAUTH_CLIENT_SECRET: ${{ secrets.GH_OAUTH_CLIENT_SECRET }}
+          GH_OAUTH_REDIRECT_URI: ${{ secrets.GH_OAUTH_REDIRECT_URI }}
         shell: bash
         run: |
           cargo build --release --locked --target ${{ matrix.build.TARGET }}
