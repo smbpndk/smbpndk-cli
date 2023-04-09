@@ -22,6 +22,10 @@ pub enum Commands {
         about = "Login to your account. To create an account, use smb signup or visit https://smbpndk.com"
     )]
     Login {},
+
+    #[clap(about = "Forgot email? Use this command to reset your password.")]
+    Forgot {},
+
     #[clap(about = "Manage your projects. Add, delete, edit. Need authentication.")]
     Projects {
         #[clap(subcommand)]

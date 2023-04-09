@@ -7,6 +7,7 @@ use std::{fs::OpenOptions, path::PathBuf, str::FromStr};
 
 use smbpndk_cli::{
     account::{
+        self,
         login::{process_login, LoginArgs},
         signup::{signup_with_email, signup_with_github, SignupMethod},
     },
@@ -130,6 +131,7 @@ async fn run() -> Result<CommandResult> {
                 SignupMethod::GitHub => signup_with_github().await,
             }
         }
+        Commands::Forgot {} => account::forgot::process().await,
         Commands::Projects { command } => projects::process(command).await,
     }
 }
