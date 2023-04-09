@@ -1,14 +1,19 @@
 mod crud;
 
-use anyhow::Result;
+use std::{
+    fs::{create_dir_all, File, OpenOptions},
+    io::Write,
+};
+
+use anyhow::{anyhow, Result};
 use clap::Subcommand;
 use console::style;
 use dialoguer::{theme::ColorfulTheme, Input};
 use spinners::Spinner;
 
-use crate::util::CommandResult;
+use crate::{debug, util::CommandResult};
 
-use self::crud::{create_project, get_all, ProjectCreate};
+use self::crud::{create_project, get_all, get_project, Config, ProjectCreate};
 
 #[derive(Subcommand)]
 pub enum Commands {
@@ -20,9 +25,9 @@ pub enum Commands {
 
     #[clap(about = "Show detail of a project.")]
     Show {
-        /// Project name
+        /// Project Id
         #[clap(short, long, required = true)]
-        name: String,
+        id: String,
     },
 
     #[clap(about = "Delete a project.")]
@@ -30,6 +35,12 @@ pub enum Commands {
         /// Project name
         #[clap(short, long, required = true)]
         name: String,
+    },
+
+    #[clap(about = "Use project for current CLI session.")]
+    Use {
+        #[clap(short, long, required = true)]
+        id: String,
     },
 }
 
@@ -107,16 +118,27 @@ pub async fn process(commands: Commands) -> Result<CommandResult> {
                 }
             }
         }
-        Commands::Show { name } => {
+        Commands::Show { id } => {
             let spinner = Spinner::new(
                 spinners::Spinners::SimpleDotsScrolling,
                 style("Loading...").green().bold().to_string(),
             );
-            Ok(CommandResult {
-                spinner,
-                symbol: "✅".to_owned(),
-                msg: format!("Showing project {name}."),
-            })
+            // Get Detail
+            match get_project(id).await {
+                Ok(_) => Ok(CommandResult {
+                    spinner,
+                    symbol: "✅".to_owned(),
+                    msg: "Showing all projects.".to_owned(),
+                }),
+                Err(e) => {
+                    println!("Error: {e:#?}");
+                    Ok(CommandResult {
+                        spinner,
+                        symbol: "❌".to_owned(),
+                        msg: "Failed to get all projects.".to_owned(),
+                    })
+                }
+            }
         }
         Commands::Delete { name } => {
             let spinner = Spinner::new(
@@ -128,6 +150,39 @@ pub async fn process(commands: Commands) -> Result<CommandResult> {
                 symbol: "✅".to_owned(),
                 msg: format!("Deleting project {name}."),
             })
+        }
+        Commands::Use { id } => {
+            let project = get_project(id).await?;
+
+            let config = Config {
+                current_project: Some(project),
+            };
+
+            let spinner = Spinner::new(
+                spinners::Spinners::SimpleDotsScrolling,
+                style("Loading...").green().bold().to_string(),
+            );
+            match home::home_dir() {
+                Some(path) => {
+                    debug!(path.to_str().unwrap());
+                    let mut file = OpenOptions::new()
+                        .create(true)
+                        .write(true)
+                        .open([path.to_str().unwrap(), "/.smb/config.json"].join(""))?;
+                    let json = serde_json::to_string(&config)?;
+                    file.write_all(json.as_bytes())?;
+
+                    Ok(CommandResult {
+                        spinner,
+                        symbol: "✅".to_owned(),
+                        msg: format!("Use project successful."),
+                    })
+                }
+                None => {
+                    let error = anyhow!("Failed to get home directory.");
+                    return Err(error);
+                }
+            }
         }
     }
 }
