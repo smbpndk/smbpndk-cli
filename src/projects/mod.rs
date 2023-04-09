@@ -1,9 +1,6 @@
 mod crud;
 
-use std::{
-    fs::{create_dir_all, File, OpenOptions},
-    io::Write,
-};
+use std::{fs::OpenOptions, io::Write};
 
 use anyhow::{anyhow, Result};
 use clap::Subcommand;
@@ -13,7 +10,7 @@ use spinners::Spinner;
 
 use crate::{debug, util::CommandResult};
 
-use self::crud::{create_project, get_all, get_project, Config, ProjectCreate};
+use self::crud::{create_project, delete_project, get_all, get_project, Config, ProjectCreate};
 
 #[derive(Subcommand)]
 pub enum Commands {
@@ -34,7 +31,7 @@ pub enum Commands {
     Delete {
         /// Project name
         #[clap(short, long, required = true)]
-        name: String,
+        id: String,
     },
 
     #[clap(about = "Use project for current CLI session.")]
@@ -140,16 +137,22 @@ pub async fn process(commands: Commands) -> Result<CommandResult> {
                 }
             }
         }
-        Commands::Delete { name } => {
+        Commands::Delete { id } => {
             let spinner = Spinner::new(
                 spinners::Spinners::SimpleDotsScrolling,
-                style("Loading...").green().bold().to_string(),
+                style("Deleting project...").green().bold().to_string(),
             );
-            Ok(CommandResult {
-                spinner,
-                symbol: "✅".to_owned(),
-                msg: format!("Deleting project {name}."),
-            })
+            match delete_project(id).await {
+                Ok(_) => Ok(CommandResult {
+                    spinner,
+                    symbol: "✅".to_owned(),
+                    msg: format!("Project deleted."),
+                }),
+                Err(e) => {
+                    let error = anyhow!("Failed to delete project. {e}");
+                    return Err(error);
+                }
+            }
         }
         Commands::Use { id } => {
             let project = get_project(id).await?;

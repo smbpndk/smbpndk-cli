@@ -90,6 +90,28 @@ pub async fn get_project(id: String) -> Result<Project> {
     }
 }
 
+pub async fn delete_project(id: String) -> Result<()> {
+    // Get current token
+    let token = get_token().await.unwrap();
+
+    let response = Client::new()
+        .delete([BASE_URL, "v1/projects/", &id].join(""))
+        .header("Authorization", token)
+        .send()
+        .await?;
+
+    match response.status() {
+        reqwest::StatusCode::OK => {
+            debug!("Project deleted.");
+            Ok(())
+        }
+        _ => {
+            debug!("Failed to request a project.", response.status());
+            Err(anyhow!("Failed to delete a project."))
+        }
+    }
+}
+
 async fn get_token() -> Result<String> {
     if let Some(mut path) = dirs::home_dir() {
         path.push(".smb/token");
