@@ -8,7 +8,7 @@ use std::{fs::OpenOptions, path::PathBuf, str::FromStr};
 use smbpndk_cli::{
     account::{
         self,
-        login::{process_login, LoginArgs},
+        login::{process_login, process_logout, LoginArgs},
         signup::{signup_with_email, signup_with_github, SignupMethod},
     },
     cli::{Cli, Commands},
@@ -117,6 +117,7 @@ async fn run() -> Result<CommandResult> {
                 }),
             }
         }
+        Commands::Logout {} => process_logout().await,
         Commands::Signup {} => {
             let signup_methods = vec![SignupMethod::Email, SignupMethod::GitHub];
             let selection = Select::with_theme(&ColorfulTheme::default())

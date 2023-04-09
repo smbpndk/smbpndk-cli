@@ -1,16 +1,19 @@
 use std::{
-    fs::{create_dir_all, OpenOptions},
+    fs::{self, create_dir_all, OpenOptions},
     io::Write,
 };
 
 use anyhow::{anyhow, Result};
+use console::style;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
+use spinners::Spinner;
 
 use crate::{
     account::model::{Data, Status, User},
     constants::BASE_URL,
     debug,
+    util::CommandResult,
 };
 
 pub struct LoginArgs {
@@ -78,4 +81,27 @@ pub async fn process_login(args: LoginArgs) -> Result<()> {
     }
 
     Ok(())
+}
+
+pub async fn process_logout() -> Result<CommandResult> {
+    let spinner = Spinner::new(
+        spinners::Spinners::SimpleDotsScrolling,
+        style("⏳ Logging you out...").green().bold().to_string(),
+    );
+    match home::home_dir() {
+        Some(path) => {
+            debug!(path.to_str().unwrap());
+            fs::remove_file([path.to_str().unwrap(), "/.smb/token"].join(""))?;
+
+            Ok(CommandResult {
+                spinner,
+                symbol: "✅".to_owned(),
+                msg: "You are logged out!".to_owned(),
+            })
+        }
+        None => {
+            let error = anyhow!("Failed to get home directory. Are you logged in?");
+            return Err(error);
+        }
+    }
 }
