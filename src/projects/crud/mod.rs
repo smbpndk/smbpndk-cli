@@ -45,7 +45,7 @@ pub async fn get_all() -> Result<Vec<Project>> {
 
 pub async fn create_project(project: ProjectCreate) -> Result<Project> {
     // Get current token
-    let token = get_token().await.unwrap();
+    let token = get_token().await?;
 
     let response = Client::new()
         .post([BASE_URL, "v1/projects"].join(""))
@@ -115,7 +115,10 @@ pub async fn delete_project(id: String) -> Result<()> {
 async fn get_token() -> Result<String> {
     if let Some(mut path) = dirs::home_dir() {
         path.push(".smb/token");
-        std::fs::read_to_string(path).map_err(|e| anyhow!(e))
+        std::fs::read_to_string(path).map_err(|e| {
+            debug!("Error while reading token: {}", &e);
+            anyhow!("Are you logged in?")
+        })
     } else {
         Err(anyhow!("Failed to get home directory."))
     }
