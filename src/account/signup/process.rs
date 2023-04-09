@@ -81,7 +81,7 @@ pub async fn signup_with_email(email: Option<String>) -> Result<CommandResult> {
     {
         Ok(_) => Ok(CommandResult {
             spinner,
-            symbol: style("✔".to_string()).for_stderr().green().to_string(),
+            symbol: style("✅".to_string()).for_stderr().green().to_string(),
             msg: "You are signed up! Check your email to confirm your account.".to_owned(),
         }),
         Err(e) => Ok(CommandResult {
@@ -96,7 +96,13 @@ pub async fn signup_with_github() -> Result<CommandResult> {
     // Spin up a simple localhost server to listen for the GitHub OAuth callback
     // setup_oauth_callback_server();
     // Open the GitHub OAuth URL in the user's browser
-    spinner_newline("Getting your GitHub information...".to_owned());
+    let mut spinner = Spinner::new(
+        spinners::Spinners::BouncingBall,
+        style("🚀 Getting your GitHub information...")
+            .green()
+            .bold()
+            .to_string(),
+    );
 
     let rx = match open::that(build_github_oauth_url()) {
         Ok(_) => {
@@ -116,6 +122,8 @@ pub async fn signup_with_github() -> Result<CommandResult> {
         }
     };
 
+    spinner.stop_and_persist("⌛", "Waiting for the authorization.".into());
+
     debug!("Waiting for code from channel...");
 
     match rx.recv() {
@@ -125,7 +133,7 @@ pub async fn signup_with_github() -> Result<CommandResult> {
         }
         Err(e) => {
             let error = anyhow!("Failed to get code from channel: {e}");
-            return Err(error);
+            Err(error)
         }
     }
 }
@@ -146,7 +154,7 @@ fn handle_connection(mut stream: TcpStream, tx: Sender<String>) {
 
     let code_regex = Regex::new(r"code=([^&]*)").unwrap();
 
-    let (status_line, filename) = match code_regex.captures(&request_line) {
+    let (status_line, filename) = match code_regex.captures(request_line) {
         Some(group) => {
             let code = group.get(1).unwrap().as_str();
             debug!("Code: {:#?}", code);
@@ -210,14 +218,14 @@ async fn process_signup_github(code: String) -> Result<CommandResult> {
         .await?;
     let mut spinner = Spinner::new(
         spinners::Spinners::BouncingBall,
-        style("Requesting GitHub token...")
+        style("🚀 Requesting GitHub token...")
             .green()
             .bold()
             .to_string(),
     );
     match response.status() {
         StatusCode::OK => {
-            spinner.stop_and_persist("✔", "Finished requesting GitHub token!".into());
+            spinner.stop_and_persist("✅", "Finished requesting GitHub token!".into());
             debug!("Response: {:#?}", &response);
             let result: GithubToken = response.json().await?;
             debug!("Result: {:#?}", &result);
@@ -234,7 +242,7 @@ async fn process_signup_github(code: String) -> Result<CommandResult> {
 async fn get_github_data(token: String) -> Result<CommandResult> {
     let mut spinner = Spinner::new(
         spinners::Spinners::BouncingBall,
-        style("Requesting GitHub data...")
+        style("🚀 Requesting GitHub data...")
             .green()
             .bold()
             .to_string(),
@@ -251,10 +259,12 @@ async fn get_github_data(token: String) -> Result<CommandResult> {
 
     match response.status() {
         StatusCode::OK => {
-            spinner.stop_and_persist("✔", "Finished requesting GitHub token!".into());
+            spinner.stop_and_persist("✅", "Finished requesting GitHub data!".into());
             debug!("Response: {:#?}", &response);
-            let emails: Vec<GithubEmail> = response.json().await?;
+            let mut emails: Vec<GithubEmail> = response.json().await?;
             debug!(&emails);
+            emails.retain(|e| !e.email.contains("@users.noreply.github.com"));
+
             let email = select_github_emails(emails)?;
             signup_with_email(Some(email.email)).await
         }
@@ -277,18 +287,11 @@ fn select_github_emails(github_emails: Vec<GithubEmail>) -> Result<GithubEmail> 
     Ok(selection)
 }
 
-fn spinner_newline(message: String) {
-    Spinner::new(
-        spinners::Spinners::BouncingBall,
-        style(message).green().bold().to_string(),
-    )
-    .stop_with_newline();
-}
-
 fn github_url_builder() -> URLBuilder {
-    let client_id = dotenv::var("GITHUB_OAUTH_CLIENT_ID").unwrap_or("development".to_owned());
+    let client_id = option_env!("GH_OAUTH_CLIENT_ID").unwrap_or("Please set GH_OAUTH_CLIENT_ID");
     let redirect_uri =
-        dotenv::var("GITHUB_OAUTH_REDIRECT_URI").unwrap_or("http://localhost:8808/".to_owned());
+        option_env!("GH_OAUTH_REDIRECT_URI").unwrap_or("Please set GH_OAUTH_REDIRECT_URI");
+
     let mut url_builder = URLBuilder::new();
     url_builder
         .set_protocol("https")
@@ -309,7 +312,8 @@ fn build_github_oauth_url() -> String {
 
 fn build_github_access_token_url(code: String) -> String {
     let client_secret =
-        dotenv::var("GITHUB_OAUTH_CLIENT_SECRET").unwrap_or("development".to_owned());
+        option_env!("GH_OAUTH_CLIENT_SECRET").unwrap_or("Please set GH_OAUTH_CLIENT_SECRET");
+
     let mut url_builder = github_url_builder();
     url_builder
         .add_route("login/oauth/access_token")

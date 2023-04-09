@@ -52,7 +52,7 @@ pub async fn create_project(project: ProjectCreate) -> Result<Project> {
     match response.status() {
         reqwest::StatusCode::CREATED => {
             let project: Project = response.json().await?;
-            println!("Project created: {:#?}", project);
+            println!("Project created: {project:#?}");
             Ok(project)
         }
         _ => {

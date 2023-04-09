@@ -1,6 +1,6 @@
 [package]
 name = "smbpndk-cli"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2021"
 description = "Command line tool for creating and managing SmbPndk resources."
 license = "Apache-2.0"
@@ -17,7 +17,7 @@ path = "src/main.rs"
 anyhow = "1.0.58"
 clap = { version = "4.1.6", features = ["derive"] }
 console = "0.15.0"
-dialoguer = { git = "https://github.com/console-rs/dialoguer", package = "dialoguer" }
+dialoguer = "0.10.4"
 dirs = "4.0.0"
 dotenv = "0.15.0"
 clap_mangen = "0.2.10"
