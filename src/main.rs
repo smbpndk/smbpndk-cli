@@ -1,20 +1,20 @@
 use anyhow::{anyhow, Result};
 use clap::Parser;
-use console::{style, Term};
-use dialoguer::{theme::ColorfulTheme, Input, Password, Select};
+use console::style;
 use dotenv::dotenv;
 use std::{fs::OpenOptions, path::PathBuf, str::FromStr};
 
 use smbpndk_cli::{
     account::{
-        login::{process_login, LoginArgs},
-        signup::{signup_with_email, signup_with_github, SignupMethod},
+        forgot::process_forgot,
+        login::{process_login, process_logout},
+        signup::process_signup,
     },
+    auth_app::process_auth_app,
     cli::{Cli, Commands},
-    projects,
+    projects::process_projects,
     util::CommandResult,
 };
-use spinners::Spinner;
 
 use tracing::subscriber::set_global_default;
 use tracing_bunyan_formatter::{BunyanFormattingLayer, JsonStorageLayer};
@@ -87,49 +87,11 @@ async fn run() -> Result<CommandResult> {
     }
 
     match cli.command {
-        Commands::Login {} => {
-            println!("Provide your login credentials.");
-            let username = Input::<String>::with_theme(&ColorfulTheme::default())
-                .with_prompt("Username")
-                .interact()
-                .unwrap();
-            let password = Password::with_theme(&ColorfulTheme::default())
-                .with_prompt("Password")
-                .interact()
-                .unwrap();
-
-            let spinner = Spinner::new(
-                spinners::Spinners::SimpleDotsScrolling,
-                style("⏳ Logging in...").green().bold().to_string(),
-            );
-
-            match process_login(LoginArgs { username, password }).await {
-                Ok(_) => Ok(CommandResult {
-                    spinner,
-                    symbol: "✅".to_owned(),
-                    msg: "You are logged in!".to_owned(),
-                }),
-                Err(e) => Ok(CommandResult {
-                    spinner,
-                    symbol: "😩".to_owned(),
-                    msg: format!("Failed to login: {e}"),
-                }),
-            }
-        }
-        Commands::Signup {} => {
-            let signup_methods = vec![SignupMethod::Email, SignupMethod::GitHub];
-            let selection = Select::with_theme(&ColorfulTheme::default())
-                .items(&signup_methods)
-                .default(0)
-                .interact_on_opt(&Term::stderr())
-                .map(|i| signup_methods[i.unwrap()])
-                .unwrap();
-
-            match selection {
-                SignupMethod::Email => signup_with_email(None).await,
-                SignupMethod::GitHub => signup_with_github().await,
-            }
-        }
-        Commands::Projects { command } => projects::process(command).await,
+        Commands::Login {} => process_login().await,
+        Commands::Logout {} => process_logout().await,
+        Commands::Signup {} => process_signup().await,
+        Commands::Forgot {} => process_forgot().await,
+        Commands::Projects { command } => process_projects(command).await,
+        Commands::AuthApp { command } => process_auth_app(command).await,
     }
 }
