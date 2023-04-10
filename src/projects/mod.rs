@@ -146,11 +146,11 @@ pub async fn process_projects(commands: Commands) -> Result<CommandResult> {
                 Ok(_) => Ok(CommandResult {
                     spinner,
                     symbol: "✅".to_owned(),
-                    msg: format!("Project deleted."),
+                    msg: "Project deleted.".to_string(),
                 }),
                 Err(e) => {
                     let error = anyhow!("Failed to delete project. {e}");
-                    return Err(error);
+                    Err(error)
                 }
             }
         }
@@ -178,12 +178,12 @@ pub async fn process_projects(commands: Commands) -> Result<CommandResult> {
                     Ok(CommandResult {
                         spinner,
                         symbol: "✅".to_owned(),
-                        msg: format!("Use project successful."),
+                        msg: "Use project successful.".to_string(),
                     })
                 }
                 None => {
                     let error = anyhow!("Failed to get home directory.");
-                    return Err(error);
+                    Err(error)
                 }
             }
         }

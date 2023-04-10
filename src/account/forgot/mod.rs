@@ -68,10 +68,7 @@ async fn input_code() -> Result<CommandResult> {
         spinners::Spinners::SimpleDotsScrolling,
         style("Checking your code...").green().bold().to_string(),
     )
-    .stop_and_persist(
-        &"✅".to_owned(),
-        "Great. Now input your new password.".to_owned(),
-    );
+    .stop_and_persist("✅", "Great. Now input your new password.".to_owned());
 
     let new_password = Password::with_theme(&ColorfulTheme::default())
         .with_prompt("Password")
@@ -103,11 +100,11 @@ async fn input_code() -> Result<CommandResult> {
         user: User {
             reset_password_token: security_code,
             password: new_password,
-            password_confirmation: password_confirmation,
+            password_confirmation,
         },
     };
 
-    let mut spinner = Spinner::new(
+    let spinner = Spinner::new(
         spinners::Spinners::SimpleDotsScrolling,
         style("Updating your password...")
             .green()

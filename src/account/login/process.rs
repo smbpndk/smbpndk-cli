@@ -132,7 +132,7 @@ pub async fn process_logout() -> Result<CommandResult> {
         }
         None => {
             let error = anyhow!("Failed to get home directory. Are you logged in?");
-            return Err(error);
+            Err(error)
         }
     }
 }

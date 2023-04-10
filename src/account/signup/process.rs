@@ -313,8 +313,8 @@ fn github_url_builder() -> URLBuilder {
     url_builder
         .set_protocol("https")
         .set_host("github.com")
-        .add_param("client_id", &client_id)
-        .add_param("redirect_uri", &redirect_uri);
+        .add_param("client_id", client_id)
+        .add_param("redirect_uri", redirect_uri);
     url_builder
 }
 
@@ -334,7 +334,7 @@ fn build_github_access_token_url(code: String) -> String {
     let mut url_builder = github_url_builder();
     url_builder
         .add_route("login/oauth/access_token")
-        .add_param("client_secret", &client_secret)
+        .add_param("client_secret", client_secret)
         .add_param("code", &code);
     url_builder.build()
 }
