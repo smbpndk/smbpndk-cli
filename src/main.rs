@@ -10,6 +10,7 @@ use smbpndk_cli::{
         login::{process_login, process_logout},
         signup::process_signup,
     },
+    auth_app::process_auth_app,
     cli::{Cli, Commands},
     projects::process_projects,
     util::CommandResult,
@@ -91,5 +92,6 @@ async fn run() -> Result<CommandResult> {
         Commands::Signup {} => process_signup().await,
         Commands::Forgot {} => process_forgot().await,
         Commands::Projects { command } => process_projects(command).await,
+        Commands::AuthApp { command } => process_auth_app(command).await,
     }
 }
