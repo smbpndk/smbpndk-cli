@@ -1,18 +1,17 @@
 use anyhow::{anyhow, Result};
 use clap::Parser;
-use console::{style, Term};
-use dialoguer::{theme::ColorfulTheme, Select};
+use console::style;
 use dotenv::dotenv;
 use std::{fs::OpenOptions, path::PathBuf, str::FromStr};
 
 use smbpndk_cli::{
     account::{
-        self,
-        login::{process_login, process_logout, LoginArgs},
-        signup::{signup_with_email, signup_with_github, SignupMethod},
+        forgot::process_forgot,
+        login::{process_login, process_logout},
+        signup::process_signup,
     },
     cli::{Cli, Commands},
-    projects,
+    projects::process_projects,
     util::CommandResult,
 };
 
@@ -89,21 +88,8 @@ async fn run() -> Result<CommandResult> {
     match cli.command {
         Commands::Login {} => process_login().await,
         Commands::Logout {} => process_logout().await,
-        Commands::Signup {} => {
-            let signup_methods = vec![SignupMethod::Email, SignupMethod::GitHub];
-            let selection = Select::with_theme(&ColorfulTheme::default())
-                .items(&signup_methods)
-                .default(0)
-                .interact_on_opt(&Term::stderr())
-                .map(|i| signup_methods[i.unwrap()])
-                .unwrap();
-
-            match selection {
-                SignupMethod::Email => signup_with_email(None).await,
-                SignupMethod::GitHub => signup_with_github().await,
-            }
-        }
-        Commands::Forgot {} => account::forgot::process().await,
-        Commands::Projects { command } => projects::process(command).await,
+        Commands::Signup {} => process_signup().await,
+        Commands::Forgot {} => process_forgot().await,
+        Commands::Projects { command } => process_projects(command).await,
     }
 }

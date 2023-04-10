@@ -41,7 +41,7 @@ pub enum Commands {
     },
 }
 
-pub async fn process(commands: Commands) -> Result<CommandResult> {
+pub async fn process_projects(commands: Commands) -> Result<CommandResult> {
     match commands {
         Commands::New {} => {
             let project_name = Input::<String>::with_theme(&ColorfulTheme::default())

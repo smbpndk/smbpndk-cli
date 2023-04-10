@@ -21,6 +21,8 @@ use crate::{
     debug,
     util::CommandResult,
 };
+
+use super::SignupMethod;
 pub struct SignupArgs {
     pub username: String,
     pub password: String,
@@ -36,7 +38,22 @@ struct SignupResult {
     data: Option<Data>,
 }
 
-pub async fn signup_with_email(email: Option<String>) -> Result<CommandResult> {
+pub async fn process_signup() -> Result<CommandResult> {
+    let signup_methods = vec![SignupMethod::Email, SignupMethod::GitHub];
+    let selection = Select::with_theme(&ColorfulTheme::default())
+        .items(&signup_methods)
+        .default(0)
+        .interact_on_opt(&Term::stderr())
+        .map(|i| signup_methods[i.unwrap()])
+        .unwrap();
+
+    match selection {
+        SignupMethod::Email => signup_with_email(None).await,
+        SignupMethod::GitHub => signup_with_github().await,
+    }
+}
+
+async fn signup_with_email(email: Option<String>) -> Result<CommandResult> {
     let email = if let Some(email) = email {
         email
     } else {
@@ -73,7 +90,7 @@ pub async fn signup_with_email(email: Option<String>) -> Result<CommandResult> {
         style("Signing up...").green().bold().to_string(),
     );
 
-    match process_signup(SignupArgs {
+    match do_signup(SignupArgs {
         username: email,
         password,
     })
@@ -92,7 +109,7 @@ pub async fn signup_with_email(email: Option<String>) -> Result<CommandResult> {
     }
 }
 
-pub async fn signup_with_github() -> Result<CommandResult> {
+async fn signup_with_github() -> Result<CommandResult> {
     // Spin up a simple localhost server to listen for the GitHub OAuth callback
     // setup_oauth_callback_server();
     // Open the GitHub OAuth URL in the user's browser
@@ -331,7 +348,7 @@ fn build_github_access_data_url() -> String {
     url_builder.build()
 }
 
-async fn process_signup(args: SignupArgs) -> Result<()> {
+async fn do_signup(args: SignupArgs) -> Result<()> {
     let signup_params = SignupParams {
         user: User {
             email: args.username,

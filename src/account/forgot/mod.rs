@@ -17,7 +17,7 @@ struct Email {
     email: String,
 }
 
-pub async fn process() -> Result<CommandResult> {
+pub async fn process_forgot() -> Result<CommandResult> {
     println!("Provide your login credentials.");
     let email = Input::<String>::with_theme(&ColorfulTheme::default())
         .with_prompt("Email")
