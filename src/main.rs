@@ -1,7 +1,7 @@
 use anyhow::{anyhow, Result};
 use clap::Parser;
 use console::{style, Term};
-use dialoguer::{theme::ColorfulTheme, Input, Password, Select};
+use dialoguer::{theme::ColorfulTheme, Select};
 use dotenv::dotenv;
 use std::{fs::OpenOptions, path::PathBuf, str::FromStr};
 
@@ -15,7 +15,6 @@ use smbpndk_cli::{
     projects,
     util::CommandResult,
 };
-use spinners::Spinner;
 
 use tracing::subscriber::set_global_default;
 use tracing_bunyan_formatter::{BunyanFormattingLayer, JsonStorageLayer};
@@ -88,35 +87,7 @@ async fn run() -> Result<CommandResult> {
     }
 
     match cli.command {
-        Commands::Login {} => {
-            println!("Provide your login credentials.");
-            let username = Input::<String>::with_theme(&ColorfulTheme::default())
-                .with_prompt("Username")
-                .interact()
-                .unwrap();
-            let password = Password::with_theme(&ColorfulTheme::default())
-                .with_prompt("Password")
-                .interact()
-                .unwrap();
-
-            let spinner = Spinner::new(
-                spinners::Spinners::SimpleDotsScrolling,
-                style("⏳ Logging in...").green().bold().to_string(),
-            );
-
-            match process_login(LoginArgs { username, password }).await {
-                Ok(_) => Ok(CommandResult {
-                    spinner,
-                    symbol: "✅".to_owned(),
-                    msg: "You are logged in!".to_owned(),
-                }),
-                Err(e) => Ok(CommandResult {
-                    spinner,
-                    symbol: "😩".to_owned(),
-                    msg: format!("Failed to login: {e}"),
-                }),
-            }
-        }
+        Commands::Login {} => process_login().await,
         Commands::Logout {} => process_logout().await,
         Commands::Signup {} => {
             let signup_methods = vec![SignupMethod::Email, SignupMethod::GitHub];

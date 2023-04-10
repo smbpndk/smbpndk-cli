@@ -5,6 +5,7 @@ use std::{
 
 use anyhow::{anyhow, Result};
 use console::style;
+use dialoguer::{theme::ColorfulTheme, Input, Password};
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use spinners::Spinner;
@@ -32,7 +33,37 @@ struct LoginResult {
     data: Data,
 }
 
-pub async fn process_login(args: LoginArgs) -> Result<()> {
+pub async fn process_login() -> Result<CommandResult> {
+    println!("Provide your login credentials.");
+    let username = Input::<String>::with_theme(&ColorfulTheme::default())
+        .with_prompt("Username")
+        .interact()
+        .unwrap();
+    let password = Password::with_theme(&ColorfulTheme::default())
+        .with_prompt("Password")
+        .interact()
+        .unwrap();
+
+    let spinner = Spinner::new(
+        spinners::Spinners::SimpleDotsScrolling,
+        style("Logging in...").green().bold().to_string(),
+    );
+
+    match do_process_login(LoginArgs { username, password }).await {
+        Ok(_) => Ok(CommandResult {
+            spinner,
+            symbol: "✅".to_owned(),
+            msg: "You are logged in!".to_owned(),
+        }),
+        Err(e) => Ok(CommandResult {
+            spinner,
+            symbol: "😩".to_owned(),
+            msg: format!("Failed to login: {e}"),
+        }),
+    }
+}
+
+async fn do_process_login(args: LoginArgs) -> Result<()> {
     let login_params = LoginParams {
         user: User {
             email: args.username,
@@ -86,7 +117,7 @@ pub async fn process_login(args: LoginArgs) -> Result<()> {
 pub async fn process_logout() -> Result<CommandResult> {
     let spinner = Spinner::new(
         spinners::Spinners::SimpleDotsScrolling,
-        style("⏳ Logging you out...").green().bold().to_string(),
+        style("Logging you out...").green().bold().to_string(),
     );
     match home::home_dir() {
         Some(path) => {
