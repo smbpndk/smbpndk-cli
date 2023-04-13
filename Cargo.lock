@@ -1060,12 +1060,22 @@ dependencies = [
  "reqwest",
  "serde",
  "serde_json",
+ "smbpndk-networking",
  "spinners",
  "tokio",
  "tracing",
  "tracing-bunyan-formatter",
  "tracing-subscriber",
  "url-builder",
+]
+
+[[package]]
+name = "smbpndk-networking"
+version = "0.0.1"
+dependencies = [
+ "reqwest",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]
