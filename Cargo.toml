@@ -1,5 +1,6 @@
 [workspace]
 members = [
     "smbpndk-networking",
-    "smbpndk-cli"
+    "smbpndk-cli",
+    "smbpndk-model"
 ]

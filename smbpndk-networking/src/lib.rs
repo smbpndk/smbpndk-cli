@@ -1,100 +1,98 @@
-mod common;
+mod constants;
 
-//use async_trait::async_trait;
-use common::{BaseHttpClient, Form, Headers, Query};
-use maybe_async::async_impl;
-use reqwest::Method;
-use reqwest::RequestBuilder;
-use serde_json::Value;
-use std::time::Duration;
+use anyhow::{anyhow, Result};
+use constants::BASE_URL;
+use log::debug;
+use reqwest::Client;
+use smbpndk_model::{AuthApp, AuthAppCreate};
 
-pub trait HttpClient: Send + Default {
-    type Error;
-
-    fn get(
-        &self,
-        url: &str,
-        headers: Option<&Headers>,
-        payload: &Query,
-    ) -> Result<String, Self::Error>;
-
-    fn post(
-        &self,
-        url: &str,
-        headers: Option<&Headers>,
-        payload: &Value,
-    ) -> Result<String, Self::Error>;
-}
-
-#[derive(thiserror::Error, Debug)]
-pub enum ReqwestError {
-    /// The request couldn't be completed because there was an error when trying
-    /// to do so
-    #[error("request: {0}")]
-    Client(#[from] reqwest::Error),
-
-    /// The request was made, but the server returned an unsuccessful status
-    /// code, such as 404 or 503. In some cases, the response may contain a
-    /// custom message from Spotify with more information, which can be
-    /// serialized into `rspotify_model::ApiError`.
-    #[error("status code {}", reqwest::Response::status(.0))]
-    StatusCode(reqwest::Response),
-}
-
-pub struct ReqwestClient {
-    // An instance of reqwest::Client.
-    client: reqwest::Client,
-}
-
-impl Default for ReqwestClient {
-    fn default() -> Self {
-        let client = reqwest::ClientBuilder::new()
-            .user_agent("smbpndk-cli")
-            .timeout(Duration::from_secs(10))
-            .build()
-            .unwrap();
-        Self { client }
+pub async fn get_token() -> Result<String> {
+    if let Some(mut path) = dirs::home_dir() {
+        path.push(".smb/token");
+        std::fs::read_to_string(path).map_err(|e| {
+            debug!("Error while reading token: {}", &e);
+            anyhow!("Are you logged in?")
+        })
+    } else {
+        Err(anyhow!("Failed to get home directory."))
     }
 }
 
-impl ReqwestClient {
-    async fn request<D>(
-        &self,
-        method: Method,
-        url: &str,
-        headers: Option<&Headers>,
-        add_data: D,
-    ) -> Result<String, ReqwestError>
-    where
-        D: Fn(RequestBuilder) -> RequestBuilder,
-    {
-        let mut request = self.client.request(method.clone(), url);
+pub async fn get_auth_apps() -> Result<Vec<AuthApp>> {
+    // Get current token
+    let token = get_token().await.unwrap();
 
-        // Setting the headers, if any
-        if let Some(headers) = headers {
-            // The headers need to be converted into a `reqwest::HeaderMap`,
-            // which won't fail as long as its contents are ASCII. This is an
-            // internal function, so the condition cannot be broken by the user
-            // and will always be true.
-            //
-            // The content-type header will be set automatically.
-            let headers = headers.try_into().unwrap();
+    let response = Client::new()
+        .get([BASE_URL, "v1/auth_apps"].join(""))
+        .header("Authorization", token)
+        .send()
+        .await?;
 
-            request = request.headers(headers);
+    match response.status() {
+        reqwest::StatusCode::OK => {
+            let projects: Vec<AuthApp> = response.json().await?;
+            Ok(projects)
         }
+        _ => Err(anyhow!("Failed to fetch auth apps.")),
+    }
+}
 
-        // Configuring the request for the specific type (get/post/put/delete)
-        request = add_data(request);
+pub async fn get_auth_app(id: String) -> Result<AuthApp> {
+    // Get current token
+    let token = get_token().await.unwrap();
 
-        // Finally performing the request and handling the response
-        log::info!("Making request {:?}", request);
-        let response = request.send().await?;
+    let response = Client::new()
+        .get([BASE_URL, "v1/auth_apps/", &id].join(""))
+        .header("Authorization", token)
+        .send()
+        .await?;
 
-        // Making sure that the status code is OK
-        if response.status().is_success() {
-            response.text().await.map_err(Into::into)
-        } else {
-            Err(ReqwestError::StatusCode(response))
+    match response.status() {
+        reqwest::StatusCode::OK => {
+            let project: AuthApp = response.json().await?;
+            println!("Project requested: {project:#?}");
+            Ok(project)
         }
+        _ => Err(anyhow!("Failed to request an auth app.")),
+    }
+}
+
+pub async fn delete_auth_app(id: String) -> Result<()> {
+    // Get current token
+    let token = get_token().await?;
+
+    let response = Client::new()
+        .delete([BASE_URL, "v1/auth_apps/", &id].join(""))
+        .header("Authorization", token)
+        .send()
+        .await?;
+
+    match response.status() {
+        reqwest::StatusCode::OK => {
+            debug!("Project deleted.");
+            Ok(())
+        }
+        _ => Err(anyhow!("Failed to delete a project.")),
+    }
+}
+
+pub async fn create_auth_app(auth_app: AuthAppCreate) -> Result<AuthApp> {
+    // Get current token
+    let token = get_token().await?;
+
+    let response = Client::new()
+        .post([BASE_URL, "v1/auth_apps"].join(""))
+        .json(&auth_app)
+        .header("Authorization", token)
+        .send()
+        .await?;
+
+    match response.status() {
+        reqwest::StatusCode::CREATED => {
+            let project: AuthApp = response.json().await?;
+            println!("Project created: {project:#?}");
+            Ok(project)
+        }
+        _ => Err(anyhow!("Failed to create a project.")),
     }
 }

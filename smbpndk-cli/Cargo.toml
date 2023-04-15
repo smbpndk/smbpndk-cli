@@ -8,6 +8,7 @@ repository = "https://github.com/smbpndk/smbpndk-cli"
 documentation = "https://docs.smbpndk.com/cli"
 keywords = ["cli", "cloud", "developer", "platform"]
 categories = ["command-line-utilities"]
+readme = "../README.md"
 
 [[bin]]
 name = "smb"
@@ -28,6 +29,7 @@ reqwest = { version = "0.11", features = ["json"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1.0.82"
 smbpndk-networking = { path = "../smbpndk-networking" }
+smbpndk-model = { path = "../smbpndk-model" }
 spinners = "4.1.0"
 tokio = { version = "1.14.1", features = ["full"] }
 tracing = { version = "0.1.35", features = ["log"] }

@@ -1,25 +1,9 @@
 use crate::{constants::BASE_URL, debug};
 use anyhow::{anyhow, Result};
 use reqwest::Client;
-use serde::{Deserialize, Serialize};
 
-#[derive(Deserialize, Debug, Serialize)]
-pub struct Project {
-    pub id: i32,
-    pub name: String,
-    pub created_at: String,
-    pub updated_at: String,
-}
-#[derive(Serialize, Debug)]
-pub struct ProjectCreate {
-    pub name: String,
-    pub description: String,
-}
-
-#[derive(Deserialize, Debug, Serialize)]
-pub struct Config {
-    pub(crate) current_project: Option<Project>,
-}
+use smbpndk_model::{Project, ProjectCreate};
+use smbpndk_networking::get_token;
 
 pub async fn get_all() -> Result<Vec<Project>> {
     // Get current token
@@ -109,17 +93,5 @@ pub async fn delete_project(id: String) -> Result<()> {
             debug!("Failed to request a project.", response.status());
             Err(anyhow!("Failed to delete a project."))
         }
-    }
-}
-
-async fn get_token() -> Result<String> {
-    if let Some(mut path) = dirs::home_dir() {
-        path.push(".smb/token");
-        std::fs::read_to_string(path).map_err(|e| {
-            debug!("Error while reading token: {}", &e);
-            anyhow!("Are you logged in?")
-        })
-    } else {
-        Err(anyhow!("Failed to get home directory."))
     }
 }

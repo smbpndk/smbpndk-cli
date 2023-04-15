@@ -6,11 +6,12 @@ use anyhow::{anyhow, Result};
 use clap::Subcommand;
 use console::style;
 use dialoguer::{theme::ColorfulTheme, Input};
+use smbpndk_model::{Config, ProjectCreate};
 use spinners::Spinner;
 
 use crate::{debug, util::CommandResult};
 
-use self::crud::{create_project, delete_project, get_all, get_project, Config, ProjectCreate};
+use self::crud::{create_project, delete_project, get_all, get_project};
 
 #[derive(Subcommand)]
 pub enum Commands {
@@ -159,6 +160,7 @@ pub async fn process_projects(commands: Commands) -> Result<CommandResult> {
 
             let config = Config {
                 current_project: Some(project),
+                current_auth_app: None,
             };
 
             let spinner = Spinner::new(

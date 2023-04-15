@@ -1082,6 +1082,7 @@ dependencies = [
  "reqwest",
  "serde",
  "serde_json",
+ "smbpndk-model",
  "smbpndk-networking",
  "spinners",
  "tokio",
@@ -1092,15 +1093,27 @@ dependencies = [
 ]
 
 [[package]]
+name = "smbpndk-model"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "smbpndk-networking"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "async-trait",
+ "dirs",
+ "home",
  "log",
  "maybe-async",
  "reqwest",
  "serde",
  "serde_json",
+ "smbpndk-model",
  "thiserror",
 ]
 
