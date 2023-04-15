@@ -110,7 +110,7 @@ pub async fn process_projects(commands: Commands) -> Result<CommandResult> {
                     println!("Error: {e:#?}");
                     Ok(CommandResult {
                         spinner,
-                        symbol: "❌".to_owned(),
+                        symbol: "😩".to_owned(),
                         msg: "Failed to get all projects.".to_owned(),
                     })
                 }

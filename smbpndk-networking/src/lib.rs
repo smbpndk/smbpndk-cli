@@ -1,4 +1,4 @@
-mod constants;
+pub mod constants;
 
 use anyhow::{anyhow, Result};
 use constants::BASE_URL;
@@ -20,7 +20,7 @@ pub async fn get_token() -> Result<String> {
 
 pub async fn get_auth_apps() -> Result<Vec<AuthApp>> {
     // Get current token
-    let token = get_token().await.unwrap();
+    let token = get_token().await?;
 
     let response = Client::new()
         .get([BASE_URL, "v1/auth_apps"].join(""))
@@ -39,7 +39,7 @@ pub async fn get_auth_apps() -> Result<Vec<AuthApp>> {
 
 pub async fn get_auth_app(id: String) -> Result<AuthApp> {
     // Get current token
-    let token = get_token().await.unwrap();
+    let token = get_token().await?;
 
     let response = Client::new()
         .get([BASE_URL, "v1/auth_apps/", &id].join(""))

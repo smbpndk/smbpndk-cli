@@ -2,7 +2,8 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct AuthApp {
-    pub id: i32,
+    pub id: String,
+    pub secret: String,
     pub name: String,
     pub created_at: String,
     pub updated_at: String,

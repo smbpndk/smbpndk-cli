@@ -8,11 +8,11 @@ use console::style;
 use dialoguer::{theme::ColorfulTheme, Input, Password};
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
+use smbpndk_networking::constants::BASE_URL;
 use spinners::Spinner;
 
 use crate::{
     account::model::{Data, Status, User},
-    constants::BASE_URL,
     debug,
     util::CommandResult,
 };

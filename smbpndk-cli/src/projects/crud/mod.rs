@@ -1,17 +1,20 @@
-use crate::{constants::BASE_URL, debug};
+use crate::debug;
 use anyhow::{anyhow, Result};
 use reqwest::Client;
 
 use smbpndk_model::{Project, ProjectCreate};
-use smbpndk_networking::get_token;
+use smbpndk_networking::{constants::BASE_URL, get_token};
 
 pub async fn get_all() -> Result<Vec<Project>> {
     // Get current token
-    let token = get_token().await.unwrap();
+    let token = get_token().await?;
+
+    print!("{}", token);
 
     let response = Client::new()
         .get([BASE_URL, "v1/projects"].join(""))
         .header("Authorization", token)
+        .header("User-agent", "smbpndk-cli")
         .send()
         .await?;
 
