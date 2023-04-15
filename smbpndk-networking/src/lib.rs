@@ -1,11 +1,12 @@
-use serde_json::Value;
-use std::collections::HashMap;
-use std::time::Duration;
+mod common;
+
+//use async_trait::async_trait;
+use common::{BaseHttpClient, Form, Headers, Query};
+use maybe_async::async_impl;
 use reqwest::Method;
 use reqwest::RequestBuilder;
-
-pub type Headers = HashMap<String, String>;
-pub type Query<'a> = HashMap<&'a str, &'a str>;
+use serde_json::Value;
+use std::time::Duration;
 
 pub trait HttpClient: Send + Default {
     type Error;
