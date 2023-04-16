@@ -8,7 +8,7 @@ pub async fn get_token() -> Result<String> {
         path.push(".smb/token");
         std::fs::read_to_string(path).map_err(|e| {
             debug!("Error while reading token: {}", &e);
-            anyhow!("Are you logged in?")
+            anyhow!("Error while reading token. Are you logged in?")
         })
     } else {
         Err(anyhow!("Failed to get home directory."))

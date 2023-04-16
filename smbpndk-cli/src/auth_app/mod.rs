@@ -1,12 +1,10 @@
-use std::{fs::OpenOptions, io::Write};
-
 use crate::{auth_app::cli::Commands, cli::CommandResult};
 use anyhow::{anyhow, Result};
 use console::style;
-use dialoguer::{theme::ColorfulTheme, Input};
-use log::debug;
-use smbpndk_model::{AuthAppCreate, Config};
+use dialoguer::{theme::ColorfulTheme, Confirm, Input};
+use smbpndk_model::AuthAppCreate;
 use smbpndk_networking_auth_app::{create_auth_app, delete_auth_app, get_auth_app, get_auth_apps};
+use smbpndk_utils::{get_config, write_config};
 use spinners::Spinner;
 
 pub(crate) mod cli;
@@ -88,7 +86,7 @@ pub async fn process_auth_app(commands: Commands) -> Result<CommandResult> {
                 spinners::Spinners::SimpleDotsScrolling,
                 style("Loading...").green().bold().to_string(),
             );
-            match get_auth_app(id).await {
+            match get_auth_app(&id).await {
                 Ok(_) => Ok(CommandResult {
                     spinner,
                     symbol: "✅".to_owned(),
@@ -126,35 +124,50 @@ pub async fn process_auth_app(commands: Commands) -> Result<CommandResult> {
             }
         }
         Commands::Use { id } => {
-            let project = get_auth_app(id).await?;
+            let mut spinner = Spinner::new(
+                spinners::Spinners::SimpleDotsScrolling,
+                style("Checking config file...").green().bold().to_string(),
+            );
 
-            let config = Config {
-                current_project: None,
-                current_auth_app: Some(project),
-            };
+            let auth_app = get_auth_app(&id).await?;
+            let mut config = get_config().await?;
 
+            if let Some(auth_app) = config.current_auth_app {
+                if auth_app.id != id {
+                    spinner.stop_with_message("Found a config.".to_string());
+                    let yes = Confirm::new()
+                        .with_prompt(format!(
+                            "Will change active auth_app to {}. Do you want to continue?",
+                            &id
+                        ))
+                        .interact()?;
+                    if !yes {
+                        let spinner = Spinner::new(
+                            spinners::Spinners::SimpleDotsScrolling,
+                            style("Cancelling operation...").green().bold().to_string(),
+                        );
+                        return Ok(CommandResult {
+                            spinner,
+                            symbol: "✅".to_owned(),
+                            msg: "Operation cancelled.".to_string(),
+                        });
+                    }
+                }
+            }
+
+            config.current_auth_app = Some(auth_app);
             let spinner = Spinner::new(
                 spinners::Spinners::SimpleDotsScrolling,
-                style("Loading...").green().bold().to_string(),
+                style("Saving config...").green().bold().to_string(),
             );
-            match home::home_dir() {
-                Some(path) => {
-                    debug!("{}", path.to_str().unwrap());
-                    let mut file = OpenOptions::new()
-                        .create(true)
-                        .write(true)
-                        .open([path.to_str().unwrap(), "/.smb/config.json"].join(""))?;
-                    let json = serde_json::to_string(&config)?;
-                    file.write_all(json.as_bytes())?;
-
-                    Ok(CommandResult {
-                        spinner,
-                        symbol: "✅".to_owned(),
-                        msg: "Use project successful.".to_string(),
-                    })
-                }
-                None => {
-                    let error = anyhow!("Failed to get home directory.");
+            match write_config(config) {
+                Ok(_) => Ok(CommandResult {
+                    spinner,
+                    symbol: "✅".to_owned(),
+                    msg: format!("Using auth_app: {:?}", &id),
+                }),
+                Err(_) => {
+                    let error = anyhow!("Failed while writing config.");
                     Err(error)
                 }
             }

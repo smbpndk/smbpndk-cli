@@ -1161,7 +1161,14 @@ dependencies = [
 name = "smbpndk-utils"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
+ "dirs",
+ "home",
+ "log",
  "regex",
+ "serde",
+ "serde_json",
+ "smbpndk-model",
 ]
 
 [[package]]

@@ -9,7 +9,7 @@ pub async fn get_all() -> Result<Vec<Project>> {
     // Get current token
     let token = get_token().await?;
 
-    print!("{}", token);
+    debug!("Current token: {}", token);
 
     let response = Client::new()
         .get([BASE_URL, "v1/projects"].join(""))
