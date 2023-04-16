@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Serialize, Deserialize, Debug)]
 pub struct AuthApp {
     pub id: String,
-    pub secret: String,
+    pub secret: Option<String>,
     pub name: String,
     pub created_at: String,
     pub updated_at: String,
