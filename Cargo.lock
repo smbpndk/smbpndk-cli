@@ -1077,6 +1077,7 @@ dependencies = [
  "dirs",
  "dotenv",
  "home",
+ "log",
  "open",
  "regex",
  "reqwest",
@@ -1084,6 +1085,9 @@ dependencies = [
  "serde_json",
  "smbpndk-model",
  "smbpndk-networking",
+ "smbpndk-networking-auth-app",
+ "smbpndk-networking-project",
+ "smbpndk-utils",
  "spinners",
  "tokio",
  "tracing",
@@ -1115,6 +1119,49 @@ dependencies = [
  "serde_json",
  "smbpndk-model",
  "thiserror",
+]
+
+[[package]]
+name = "smbpndk-networking-auth-app"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "dirs",
+ "home",
+ "log",
+ "maybe-async",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "smbpndk-model",
+ "smbpndk-networking",
+ "thiserror",
+]
+
+[[package]]
+name = "smbpndk-networking-project"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "dirs",
+ "home",
+ "log",
+ "maybe-async",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "smbpndk-model",
+ "smbpndk-networking",
+ "thiserror",
+]
+
+[[package]]
+name = "smbpndk-utils"
+version = "0.1.0"
+dependencies = [
+ "regex",
 ]
 
 [[package]]

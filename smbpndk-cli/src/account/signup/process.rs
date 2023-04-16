@@ -9,6 +9,7 @@ use std::{
 use anyhow::{anyhow, Result};
 use console::{style, Term};
 use dialoguer::{theme::ColorfulTheme, Input, Password, Select};
+use log::debug;
 use regex::Regex;
 use reqwest::{Client, StatusCode};
 use serde::{Deserialize, Serialize};
@@ -18,8 +19,7 @@ use url_builder::URLBuilder;
 
 use crate::{
     account::model::{Data, Status, User},
-    debug,
-    util::CommandResult,
+    cli::CommandResult,
 };
 
 use super::SignupMethod;
@@ -182,7 +182,7 @@ fn handle_connection(mut stream: TcpStream, tx: Sender<String>) {
                     debug!("Code sent to channel.");
                 }
                 Err(e) => {
-                    debug!("Failed to send code to channel: {e}", e);
+                    debug!("Failed to send code to channel: {e}");
                 }
             }
             ("HTTP/1.1 200 OK", "./src/account/hello.html")
@@ -279,7 +279,7 @@ async fn get_github_data(token: String) -> Result<CommandResult> {
             spinner.stop_and_persist("✅", "Finished requesting GitHub data!".into());
             debug!("Response: {:#?}", &response);
             let mut emails: Vec<GithubEmail> = response.json().await?;
-            debug!(&emails);
+            debug!("{:#?}", &emails);
             emails.retain(|e| !e.email.contains("@users.noreply.github.com"));
 
             let email = select_github_emails(emails)?;

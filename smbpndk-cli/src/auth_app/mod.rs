@@ -1,11 +1,12 @@
 use std::{fs::OpenOptions, io::Write};
 
-use crate::{auth_app::cli::Commands, debug, util::CommandResult};
+use crate::{auth_app::cli::Commands, cli::CommandResult};
 use anyhow::{anyhow, Result};
 use console::style;
 use dialoguer::{theme::ColorfulTheme, Input};
+use log::debug;
 use smbpndk_model::{AuthAppCreate, Config};
-use smbpndk_networking::{create_auth_app, delete_auth_app, get_auth_app, get_auth_apps};
+use smbpndk_networking_auth_app::{create_auth_app, delete_auth_app, get_auth_app, get_auth_apps};
 use spinners::Spinner;
 
 pub(crate) mod cli;
@@ -13,8 +14,8 @@ pub(crate) mod cli;
 pub async fn process_auth_app(commands: Commands) -> Result<CommandResult> {
     match commands {
         Commands::New {} => {
-            let project_name = Input::<String>::with_theme(&ColorfulTheme::default())
-                .with_prompt("Project name")
+            let app_name = Input::<String>::with_theme(&ColorfulTheme::default())
+                .with_prompt("App name")
                 .interact()
                 .unwrap();
             let description = Input::<String>::with_theme(&ColorfulTheme::default())
@@ -24,11 +25,11 @@ pub async fn process_auth_app(commands: Commands) -> Result<CommandResult> {
 
             let spinner = Spinner::new(
                 spinners::Spinners::SimpleDotsScrolling,
-                style("Creating project...").green().bold().to_string(),
+                style("Creating an auth app...").green().bold().to_string(),
             );
 
             match create_auth_app(AuthAppCreate {
-                name: project_name.clone(),
+                name: app_name.clone(),
                 description: description.clone(),
             })
             .await
@@ -36,14 +37,14 @@ pub async fn process_auth_app(commands: Commands) -> Result<CommandResult> {
                 Ok(_) => Ok(CommandResult {
                     spinner,
                     symbol: "✅".to_owned(),
-                    msg: format!("Creating a project {project_name}."),
+                    msg: format!("An auth app created: {app_name}."),
                 }),
                 Err(e) => {
                     println!("Error: {e:#?}");
                     Ok(CommandResult {
                         spinner,
-                        symbol: "❌".to_owned(),
-                        msg: format!("Failed to create a project {project_name}."),
+                        symbol: "😩".to_owned(),
+                        msg: format!("Failed to create an auth app: {app_name}."),
                     })
                 }
             }
@@ -53,8 +54,6 @@ pub async fn process_auth_app(commands: Commands) -> Result<CommandResult> {
                 spinners::Spinners::SimpleDotsScrolling,
                 style("Loading...").green().bold().to_string(),
             );
-
-            // Get all
             match get_auth_apps().await {
                 Ok(auth_apps) => {
                     println!("auth_apps: {auth_apps:#?}");
@@ -71,7 +70,7 @@ pub async fn process_auth_app(commands: Commands) -> Result<CommandResult> {
                     Ok(CommandResult {
                         spinner,
                         symbol: "✅".to_owned(),
-                        msg: "Showing all projects.".to_owned(),
+                        msg: "Showing all auth apps.".to_owned(),
                     })
                 }
                 Err(e) => {
@@ -89,19 +88,18 @@ pub async fn process_auth_app(commands: Commands) -> Result<CommandResult> {
                 spinners::Spinners::SimpleDotsScrolling,
                 style("Loading...").green().bold().to_string(),
             );
-            // Get Detail
             match get_auth_app(id).await {
                 Ok(_) => Ok(CommandResult {
                     spinner,
                     symbol: "✅".to_owned(),
-                    msg: "Showing all projects.".to_owned(),
+                    msg: "Showing auth app.".to_owned(),
                 }),
                 Err(e) => {
                     println!("Error: {e:#?}");
                     Ok(CommandResult {
                         spinner,
-                        symbol: "❌".to_owned(),
-                        msg: "Failed to get all projects.".to_owned(),
+                        symbol: "😩".to_owned(),
+                        msg: "Failed to get an auth app.".to_owned(),
                     })
                 }
             }
@@ -111,19 +109,18 @@ pub async fn process_auth_app(commands: Commands) -> Result<CommandResult> {
                 spinners::Spinners::SimpleDotsScrolling,
                 style("Loading...").green().bold().to_string(),
             );
-            // Get Detail
             match delete_auth_app(id).await {
                 Ok(_) => Ok(CommandResult {
                     spinner,
                     symbol: "✅".to_owned(),
-                    msg: "Showing all projects.".to_owned(),
+                    msg: "Delete auth app succeed.".to_owned(),
                 }),
                 Err(e) => {
                     println!("Error: {e:#?}");
                     Ok(CommandResult {
                         spinner,
-                        symbol: "❌".to_owned(),
-                        msg: "Failed to get all projects.".to_owned(),
+                        symbol: "😩".to_owned(),
+                        msg: "Failed to delete auth app.".to_owned(),
                     })
                 }
             }
@@ -142,7 +139,7 @@ pub async fn process_auth_app(commands: Commands) -> Result<CommandResult> {
             );
             match home::home_dir() {
                 Some(path) => {
-                    debug!(path.to_str().unwrap());
+                    debug!("{}", path.to_str().unwrap());
                     let mut file = OpenOptions::new()
                         .create(true)
                         .write(true)

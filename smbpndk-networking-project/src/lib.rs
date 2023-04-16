@@ -1,5 +1,5 @@
-use crate::debug;
 use anyhow::{anyhow, Result};
+use log::debug;
 use reqwest::Client;
 
 use smbpndk_model::{Project, ProjectCreate};
@@ -23,10 +23,7 @@ pub async fn get_all() -> Result<Vec<Project>> {
             let projects: Vec<Project> = response.json().await?;
             Ok(projects)
         }
-        _ => {
-            debug!("Failed to get all projects.", response.status());
-            Err(anyhow!("Failed to fetch projects."))
-        }
+        _ => Err(anyhow!("Failed to fetch projects.")),
     }
 }
 
@@ -47,10 +44,7 @@ pub async fn create_project(project: ProjectCreate) -> Result<Project> {
             println!("Project created: {project:#?}");
             Ok(project)
         }
-        _ => {
-            debug!("Failed to create a project.", response.status());
-            Err(anyhow!("Failed to create a project."))
-        }
+        _ => Err(anyhow!("Failed to create a project.")),
     }
 }
 
@@ -70,10 +64,7 @@ pub async fn get_project(id: String) -> Result<Project> {
             println!("Project requested: {project:#?}");
             Ok(project)
         }
-        _ => {
-            debug!("Failed to request a project.", response.status());
-            Err(anyhow!("Failed to request a project."))
-        }
+        _ => Err(anyhow!("Failed to request a project.")),
     }
 }
 
@@ -92,9 +83,6 @@ pub async fn delete_project(id: String) -> Result<()> {
             debug!("Project deleted.");
             Ok(())
         }
-        _ => {
-            debug!("Failed to request a project.", response.status());
-            Err(anyhow!("Failed to delete a project."))
-        }
+        _ => Err(anyhow!("Failed to delete a project.")),
     }
 }

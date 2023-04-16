@@ -1,46 +1,17 @@
-mod crud;
-
-use std::{fs::OpenOptions, io::Write};
+pub mod cli;
 
 use anyhow::{anyhow, Result};
-use clap::Subcommand;
 use console::style;
 use dialoguer::{theme::ColorfulTheme, Input};
+use log::debug;
 use smbpndk_model::{Config, ProjectCreate};
+use smbpndk_networking_project::{create_project, delete_project, get_all, get_project};
 use spinners::Spinner;
+use std::{fs::OpenOptions, io::Write};
 
-use crate::{debug, util::CommandResult};
+use crate::cli::CommandResult;
 
-use self::crud::{create_project, delete_project, get_all, get_project};
-
-#[derive(Subcommand)]
-pub enum Commands {
-    #[clap(about = "Add new project.")]
-    New {},
-
-    #[clap(about = "List all your projects.")]
-    List {},
-
-    #[clap(about = "Show detail of a project.")]
-    Show {
-        /// Project Id
-        #[clap(short, long, required = true)]
-        id: String,
-    },
-
-    #[clap(about = "Delete a project.")]
-    Delete {
-        /// Project name
-        #[clap(short, long, required = true)]
-        id: String,
-    },
-
-    #[clap(about = "Use project for current CLI session.")]
-    Use {
-        #[clap(short, long, required = true)]
-        id: String,
-    },
-}
+use self::cli::Commands;
 
 pub async fn process_projects(commands: Commands) -> Result<CommandResult> {
     match commands {
@@ -74,7 +45,7 @@ pub async fn process_projects(commands: Commands) -> Result<CommandResult> {
                     println!("Error: {e:#?}");
                     Ok(CommandResult {
                         spinner,
-                        symbol: "❌".to_owned(),
+                        symbol: "😩".to_owned(),
                         msg: format!("Failed to create a project {project_name}."),
                     })
                 }
@@ -132,7 +103,7 @@ pub async fn process_projects(commands: Commands) -> Result<CommandResult> {
                     println!("Error: {e:#?}");
                     Ok(CommandResult {
                         spinner,
-                        symbol: "❌".to_owned(),
+                        symbol: "😩".to_owned(),
                         msg: "Failed to get all projects.".to_owned(),
                     })
                 }
@@ -169,7 +140,7 @@ pub async fn process_projects(commands: Commands) -> Result<CommandResult> {
             );
             match home::home_dir() {
                 Some(path) => {
-                    debug!(path.to_str().unwrap());
+                    debug!("{}", path.to_str().unwrap());
                     let mut file = OpenOptions::new()
                         .create(true)
                         .write(true)
