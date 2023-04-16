@@ -1,7 +1,7 @@
 use clap::{Parser, Subcommand};
 use spinners::Spinner;
 
-use crate::{auth_app, project};
+use crate::{account, auth_app, project};
 
 pub struct CommandResult {
     pub spinner: Spinner,
@@ -22,17 +22,14 @@ pub struct Cli {
 
 #[derive(Subcommand)]
 pub enum Commands {
-    #[clap(about = "Create an account. Use your email as your username.")]
-    Signup {},
-    #[clap(about = "Login to your account. To create an account, use smb signup.")]
-    Login {},
-    #[clap(about = "Logout all session.")]
-    Logout {},
-    #[clap(about = "Forgot email? Use this command to reset your password.")]
-    Forgot {},
+    #[clap(about = "Manage your account.")]
+    Account {
+        #[clap(subcommand)]
+        command: account::cli::Commands,
+    },
 
     #[clap(about = "Manage your projects. Add, delete, edit. Need authentication.")]
-    Projects {
+    Project {
         #[clap(subcommand)]
         command: project::cli::Commands,
     },

@@ -13,7 +13,7 @@ use crate::cli::CommandResult;
 
 use self::cli::Commands;
 
-pub async fn process_projects(commands: Commands) -> Result<CommandResult> {
+pub async fn process_project(commands: Commands) -> Result<CommandResult> {
     match commands {
         Commands::New {} => {
             let project_name = Input::<String>::with_theme(&ColorfulTheme::default())

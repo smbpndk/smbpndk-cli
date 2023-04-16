@@ -5,14 +5,10 @@ use dotenv::dotenv;
 use std::{fs::OpenOptions, path::PathBuf, str::FromStr};
 
 use smbpndk_cli::{
-    account::{
-        forgot::process_forgot,
-        login::{process_login, process_logout},
-        signup::process_signup,
-    },
+    account::process_account,
     auth_app::process_auth_app,
     cli::{Cli, CommandResult, Commands},
-    project::process_projects,
+    project::process_project,
 };
 
 use tracing::subscriber::set_global_default;
@@ -86,11 +82,8 @@ async fn run() -> Result<CommandResult> {
     }
 
     match cli.command {
-        Commands::Login {} => process_login().await,
-        Commands::Logout {} => process_logout().await,
-        Commands::Signup {} => process_signup().await,
-        Commands::Forgot {} => process_forgot().await,
-        Commands::Projects { command } => process_projects(command).await,
+        Commands::Account { command } => process_account(command).await,
+        Commands::Project { command } => process_project(command).await,
         Commands::AuthApp { command } => process_auth_app(command).await,
     }
 }
