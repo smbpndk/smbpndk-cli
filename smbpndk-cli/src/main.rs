@@ -12,7 +12,7 @@ use smbpndk_cli::{
     },
     auth_app::process_auth_app,
     cli::{Cli, CommandResult, Commands},
-    projects::process_projects,
+    project::process_projects,
 };
 
 use tracing::subscriber::set_global_default;

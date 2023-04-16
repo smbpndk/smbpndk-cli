@@ -1,7 +1,7 @@
 use clap::{Parser, Subcommand};
 use spinners::Spinner;
 
-use crate::{auth_app, projects};
+use crate::{auth_app, project};
 
 pub struct CommandResult {
     pub spinner: Spinner,
@@ -34,7 +34,7 @@ pub enum Commands {
     #[clap(about = "Manage your projects. Add, delete, edit. Need authentication.")]
     Projects {
         #[clap(subcommand)]
-        command: projects::cli::Commands,
+        command: project::cli::Commands,
     },
 
     #[clap(about = "Manage your AuthApp. Add, delete, edit. Need authentication.")]
