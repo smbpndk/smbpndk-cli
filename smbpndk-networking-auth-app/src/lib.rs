@@ -23,12 +23,12 @@ pub async fn get_auth_apps() -> Result<Vec<AuthApp>> {
     }
 }
 
-pub async fn get_auth_app(id: String) -> Result<AuthApp> {
+pub async fn get_auth_app(id: &str) -> Result<AuthApp> {
     // Get current token
     let token = get_token().await?;
 
     let response = Client::new()
-        .get([BASE_URL, "v1/auth_apps/", &id].join(""))
+        .get([BASE_URL, "v1/auth_apps/", id].join(""))
         .header("Authorization", token)
         .send()
         .await?;
@@ -36,10 +36,13 @@ pub async fn get_auth_app(id: String) -> Result<AuthApp> {
     match response.status() {
         reqwest::StatusCode::OK => {
             let auth_app: AuthApp = response.json().await?;
-            println!("Project requested: {auth_app:#?}");
+            println!("Auth app requested: {auth_app:#?}");
             Ok(auth_app)
         }
-        _ => Err(anyhow!("Failed to request an auth app.")),
+        _ => Err(anyhow!(format!(
+            "Failed to find an auth app with id: {}.",
+            id
+        ))),
     }
 }
 

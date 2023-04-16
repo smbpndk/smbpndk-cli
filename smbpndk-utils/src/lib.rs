@@ -18,6 +18,38 @@ pub fn email_validation(input: &str) -> Result<(), &'static str> {
     }
 }
 
+pub async fn get_config() -> Result<Config> {
+    match home::home_dir() {
+        Some(mut path) => {
+            path.push(".smb/config.json");
+            if !path.exists() {
+                let config = Config {
+                    current_project: None,
+                    current_auth_app: None,
+                };
+                return Ok(config);
+            }
+            let config_string = std::fs::read_to_string(path).map_err(|e| {
+                debug!("Error while reading config file: {}", &e);
+                anyhow!("Error while reading config file. Are you logged in?")
+            })?;
+            let config: Config = serde_json::from_str(&config_string).map_err(|e| {
+                debug!("Error while parsing config: {}", &e);
+                anyhow!("Error while parsing config. Are you logged in?")
+            })?;
+
+            Ok(config)
+        }
+        None => {
+            let config = Config {
+                current_project: None,
+                current_auth_app: None,
+            };
+            Ok(config)
+        }
+    }
+}
+
 pub fn write_config(config: Config) -> Result<Config> {
     match home::home_dir() {
         Some(path) => {
@@ -31,6 +63,6 @@ pub fn write_config(config: Config) -> Result<Config> {
 
             Ok(config)
         }
-        None => Err(anyhow!("Error getting config.")),
+        None => Err(anyhow!("Error getting home directory.")),
     }
 }
