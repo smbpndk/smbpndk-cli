@@ -11,9 +11,8 @@ use smbpndk_cli::{
         signup::process_signup,
     },
     auth_app::process_auth_app,
-    cli::{Cli, Commands},
+    cli::{Cli, CommandResult, Commands},
     projects::process_projects,
-    util::CommandResult,
 };
 
 use tracing::subscriber::set_global_default;

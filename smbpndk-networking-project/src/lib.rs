@@ -1,33 +1,20 @@
-use crate::{constants::BASE_URL, debug};
 use anyhow::{anyhow, Result};
+use log::debug;
 use reqwest::Client;
-use serde::{Deserialize, Serialize};
 
-#[derive(Deserialize, Debug, Serialize)]
-pub struct Project {
-    pub id: i32,
-    pub name: String,
-    pub created_at: String,
-    pub updated_at: String,
-}
-#[derive(Serialize, Debug)]
-pub struct ProjectCreate {
-    pub name: String,
-    pub description: String,
-}
-
-#[derive(Deserialize, Debug, Serialize)]
-pub struct Config {
-    pub(crate) current_project: Option<Project>,
-}
+use smbpndk_model::{Project, ProjectCreate};
+use smbpndk_networking::{constants::BASE_URL, get_token};
 
 pub async fn get_all() -> Result<Vec<Project>> {
     // Get current token
-    let token = get_token().await.unwrap();
+    let token = get_token().await?;
+
+    print!("{}", token);
 
     let response = Client::new()
         .get([BASE_URL, "v1/projects"].join(""))
         .header("Authorization", token)
+        .header("User-agent", "smbpndk-cli")
         .send()
         .await?;
 
@@ -36,10 +23,7 @@ pub async fn get_all() -> Result<Vec<Project>> {
             let projects: Vec<Project> = response.json().await?;
             Ok(projects)
         }
-        _ => {
-            debug!("Failed to get all projects.", response.status());
-            Err(anyhow!("Failed to fetch projects."))
-        }
+        _ => Err(anyhow!("Failed to fetch projects.")),
     }
 }
 
@@ -60,10 +44,7 @@ pub async fn create_project(project: ProjectCreate) -> Result<Project> {
             println!("Project created: {project:#?}");
             Ok(project)
         }
-        _ => {
-            debug!("Failed to create a project.", response.status());
-            Err(anyhow!("Failed to create a project."))
-        }
+        _ => Err(anyhow!("Failed to create a project.")),
     }
 }
 
@@ -83,10 +64,7 @@ pub async fn get_project(id: String) -> Result<Project> {
             println!("Project requested: {project:#?}");
             Ok(project)
         }
-        _ => {
-            debug!("Failed to request a project.", response.status());
-            Err(anyhow!("Failed to request a project."))
-        }
+        _ => Err(anyhow!("Failed to request a project.")),
     }
 }
 
@@ -105,21 +83,6 @@ pub async fn delete_project(id: String) -> Result<()> {
             debug!("Project deleted.");
             Ok(())
         }
-        _ => {
-            debug!("Failed to request a project.", response.status());
-            Err(anyhow!("Failed to delete a project."))
-        }
-    }
-}
-
-async fn get_token() -> Result<String> {
-    if let Some(mut path) = dirs::home_dir() {
-        path.push(".smb/token");
-        std::fs::read_to_string(path).map_err(|e| {
-            debug!("Error while reading token: {}", &e);
-            anyhow!("Are you logged in?")
-        })
-    } else {
-        Err(anyhow!("Failed to get home directory."))
+        _ => Err(anyhow!("Failed to delete a project.")),
     }
 }

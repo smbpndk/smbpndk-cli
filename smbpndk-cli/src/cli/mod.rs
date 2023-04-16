@@ -1,6 +1,13 @@
 use clap::{Parser, Subcommand};
+use spinners::Spinner;
 
 use crate::{auth_app, projects};
+
+pub struct CommandResult {
+    pub spinner: Spinner,
+    pub symbol: String,
+    pub msg: String,
+}
 
 #[derive(Parser)]
 #[clap(author, version, about)]
@@ -27,7 +34,7 @@ pub enum Commands {
     #[clap(about = "Manage your projects. Add, delete, edit. Need authentication.")]
     Projects {
         #[clap(subcommand)]
-        command: projects::Commands,
+        command: projects::cli::Commands,
     },
 
     #[clap(about = "Manage your AuthApp. Add, delete, edit. Need authentication.")]

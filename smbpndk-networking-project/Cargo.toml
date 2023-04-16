@@ -1,0 +1,20 @@
+[package]
+name = "smbpndk-networking-project"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+reqwest = { version = "0.11", features = ["json"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1.0.82"
+thiserror = "1.0.29"
+async-trait = { version = "0.1.51", optional = true }
+log = "0.4.14"
+maybe-async = { version = "0.2", features = ["is_sync"] }
+home = "0.5.4"
+anyhow = "1.0.58"
+dirs = "4.0.0"
+smbpndk-networking = { path = "../smbpndk-networking" }
+smbpndk-model = { path = "../smbpndk-model" }

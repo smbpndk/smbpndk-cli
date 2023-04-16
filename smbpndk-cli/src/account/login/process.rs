@@ -6,15 +6,15 @@ use std::{
 use anyhow::{anyhow, Result};
 use console::style;
 use dialoguer::{theme::ColorfulTheme, Input, Password};
+use log::debug;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
+use smbpndk_networking::constants::BASE_URL;
 use spinners::Spinner;
 
 use crate::{
     account::model::{Data, Status, User},
-    constants::BASE_URL,
-    debug,
-    util::CommandResult,
+    cli::CommandResult,
 };
 
 pub struct LoginArgs {
@@ -82,10 +82,10 @@ async fn do_process_login(args: LoginArgs) -> Result<()> {
             let headers = response.headers();
             match headers.get("Authorization") {
                 Some(token) => {
-                    debug!(token.to_str()?);
+                    debug!("{}", token.to_str()?);
                     match home::home_dir() {
                         Some(path) => {
-                            debug!(path.to_str().unwrap());
+                            debug!("{}", path.to_str().unwrap());
                             create_dir_all(path.join(".smb"))?;
                             let mut file = OpenOptions::new()
                                 .create(true)
@@ -121,7 +121,7 @@ pub async fn process_logout() -> Result<CommandResult> {
     );
     match home::home_dir() {
         Some(path) => {
-            debug!(path.to_str().unwrap());
+            debug!("{}", path.to_str().unwrap());
             fs::remove_file([path.to_str().unwrap(), "/.smb/token"].join(""))?;
 
             Ok(CommandResult {

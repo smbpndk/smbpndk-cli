@@ -30,6 +30,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "224afbd727c3d6e4b90103ece64b8d1b67fbb1973b1046c2281eed3f3803f800"
 
 [[package]]
+name = "async-trait"
+version = "0.1.66"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b84f9ebcc6c1f5b8cb160f6990096a5c127f423fcb6e1ccc46c370cbdfb75dfc"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "autocfg"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -571,6 +582,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "maybe-async"
+version = "0.2.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0f1b8c13cb1f814b634a96b2c725449fe7ed464a7b8781de8688be5ffbd3f305"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "memchr"
 version = "2.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1045,7 +1067,7 @@ checksum = "a507befe795404456341dfab10cef66ead4c041f62b8b11bbb92bffe5d0953e0"
 
 [[package]]
 name = "smbpndk-cli"
-version = "0.2.2"
+version = "0.2.1"
 dependencies = [
  "anyhow",
  "clap",
@@ -1055,17 +1077,91 @@ dependencies = [
  "dirs",
  "dotenv",
  "home",
+ "log",
  "open",
  "regex",
  "reqwest",
  "serde",
  "serde_json",
+ "smbpndk-model",
+ "smbpndk-networking",
+ "smbpndk-networking-auth-app",
+ "smbpndk-networking-project",
+ "smbpndk-utils",
  "spinners",
  "tokio",
  "tracing",
  "tracing-bunyan-formatter",
  "tracing-subscriber",
  "url-builder",
+]
+
+[[package]]
+name = "smbpndk-model"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "smbpndk-networking"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "dirs",
+ "home",
+ "log",
+ "maybe-async",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "smbpndk-model",
+ "thiserror",
+]
+
+[[package]]
+name = "smbpndk-networking-auth-app"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "dirs",
+ "home",
+ "log",
+ "maybe-async",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "smbpndk-model",
+ "smbpndk-networking",
+ "thiserror",
+]
+
+[[package]]
+name = "smbpndk-networking-project"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "dirs",
+ "home",
+ "log",
+ "maybe-async",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "smbpndk-model",
+ "smbpndk-networking",
+ "thiserror",
+]
+
+[[package]]
+name = "smbpndk-utils"
+version = "0.1.0"
+dependencies = [
+ "regex",
 ]
 
 [[package]]

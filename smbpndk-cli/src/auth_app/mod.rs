@@ -1,51 +1,21 @@
-mod crud;
-
 use std::{fs::OpenOptions, io::Write};
 
+use crate::{auth_app::cli::Commands, cli::CommandResult};
 use anyhow::{anyhow, Result};
-use clap::Subcommand;
 use console::style;
 use dialoguer::{theme::ColorfulTheme, Input};
+use log::debug;
+use smbpndk_model::{AuthAppCreate, Config};
+use smbpndk_networking_auth_app::{create_auth_app, delete_auth_app, get_auth_app, get_auth_apps};
 use spinners::Spinner;
 
-use crate::{debug, util::CommandResult};
+pub(crate) mod cli;
 
-use self::crud::{create_project, delete_project, get_all, get_project, Config, ProjectCreate};
-
-#[derive(Subcommand)]
-pub enum Commands {
-    #[clap(about = "Add new project.")]
-    New {},
-
-    #[clap(about = "List all your projects.")]
-    List {},
-
-    #[clap(about = "Show detail of a project.")]
-    Show {
-        /// Project Id
-        #[clap(short, long, required = true)]
-        id: String,
-    },
-
-    #[clap(about = "Delete a project.")]
-    Delete {
-        /// Project name
-        #[clap(short, long, required = true)]
-        id: String,
-    },
-
-    #[clap(about = "Use project for current CLI session.")]
-    Use {
-        #[clap(short, long, required = true)]
-        id: String,
-    },
-}
-
-pub async fn process_projects(commands: Commands) -> Result<CommandResult> {
+pub async fn process_auth_app(commands: Commands) -> Result<CommandResult> {
     match commands {
         Commands::New {} => {
-            let project_name = Input::<String>::with_theme(&ColorfulTheme::default())
-                .with_prompt("Project name")
+            let app_name = Input::<String>::with_theme(&ColorfulTheme::default())
+                .with_prompt("App name")
                 .interact()
                 .unwrap();
             let description = Input::<String>::with_theme(&ColorfulTheme::default())
@@ -55,11 +25,11 @@ pub async fn process_projects(commands: Commands) -> Result<CommandResult> {
 
             let spinner = Spinner::new(
                 spinners::Spinners::SimpleDotsScrolling,
-                style("Creating project...").green().bold().to_string(),
+                style("Creating an auth app...").green().bold().to_string(),
             );
 
-            match create_project(ProjectCreate {
-                name: project_name.clone(),
+            match create_auth_app(AuthAppCreate {
+                name: app_name.clone(),
                 description: description.clone(),
             })
             .await
@@ -67,14 +37,14 @@ pub async fn process_projects(commands: Commands) -> Result<CommandResult> {
                 Ok(_) => Ok(CommandResult {
                     spinner,
                     symbol: "✅".to_owned(),
-                    msg: format!("Creating a project {project_name}."),
+                    msg: format!("An auth app created: {app_name}."),
                 }),
                 Err(e) => {
                     println!("Error: {e:#?}");
                     Ok(CommandResult {
                         spinner,
-                        symbol: "❌".to_owned(),
-                        msg: format!("Failed to create a project {project_name}."),
+                        symbol: "😩".to_owned(),
+                        msg: format!("Failed to create an auth app: {app_name}."),
                     })
                 }
             }
@@ -84,16 +54,14 @@ pub async fn process_projects(commands: Commands) -> Result<CommandResult> {
                 spinners::Spinners::SimpleDotsScrolling,
                 style("Loading...").green().bold().to_string(),
             );
-
-            // Get all
-            match get_all().await {
-                Ok(projects) => {
-                    println!("Projects: {projects:#?}");
+            match get_auth_apps().await {
+                Ok(auth_apps) => {
+                    println!("auth_apps: {auth_apps:#?}");
                     println!(
                         "{0: <5} | {1: <20} | {2: <30} | {3: <30}",
                         "ID", "Name", "Created at", "Updated at"
                     );
-                    for project in projects {
+                    for project in auth_apps {
                         println!(
                             "{0: <5} | {1: <20} | {2: <30} | {3: <30}",
                             project.id, project.name, project.created_at, project.updated_at
@@ -102,15 +70,15 @@ pub async fn process_projects(commands: Commands) -> Result<CommandResult> {
                     Ok(CommandResult {
                         spinner,
                         symbol: "✅".to_owned(),
-                        msg: "Showing all projects.".to_owned(),
+                        msg: "Showing all auth apps.".to_owned(),
                     })
                 }
                 Err(e) => {
                     println!("Error: {e:#?}");
                     Ok(CommandResult {
                         spinner,
-                        symbol: "❌".to_owned(),
-                        msg: "Failed to get all projects.".to_owned(),
+                        symbol: "😩".to_owned(),
+                        msg: "Failed to get all auth apps.".to_owned(),
                     })
                 }
             }
@@ -120,19 +88,18 @@ pub async fn process_projects(commands: Commands) -> Result<CommandResult> {
                 spinners::Spinners::SimpleDotsScrolling,
                 style("Loading...").green().bold().to_string(),
             );
-            // Get Detail
-            match get_project(id).await {
+            match get_auth_app(id).await {
                 Ok(_) => Ok(CommandResult {
                     spinner,
                     symbol: "✅".to_owned(),
-                    msg: "Showing all projects.".to_owned(),
+                    msg: "Showing auth app.".to_owned(),
                 }),
                 Err(e) => {
                     println!("Error: {e:#?}");
                     Ok(CommandResult {
                         spinner,
-                        symbol: "❌".to_owned(),
-                        msg: "Failed to get all projects.".to_owned(),
+                        symbol: "😩".to_owned(),
+                        msg: "Failed to get an auth app.".to_owned(),
                     })
                 }
             }
@@ -140,25 +107,30 @@ pub async fn process_projects(commands: Commands) -> Result<CommandResult> {
         Commands::Delete { id } => {
             let spinner = Spinner::new(
                 spinners::Spinners::SimpleDotsScrolling,
-                style("Deleting project...").green().bold().to_string(),
+                style("Loading...").green().bold().to_string(),
             );
-            match delete_project(id).await {
+            match delete_auth_app(id).await {
                 Ok(_) => Ok(CommandResult {
                     spinner,
                     symbol: "✅".to_owned(),
-                    msg: "Project deleted.".to_string(),
+                    msg: "Delete auth app succeed.".to_owned(),
                 }),
                 Err(e) => {
-                    let error = anyhow!("Failed to delete project. {e}");
-                    Err(error)
+                    println!("Error: {e:#?}");
+                    Ok(CommandResult {
+                        spinner,
+                        symbol: "😩".to_owned(),
+                        msg: "Failed to delete auth app.".to_owned(),
+                    })
                 }
             }
         }
         Commands::Use { id } => {
-            let project = get_project(id).await?;
+            let project = get_auth_app(id).await?;
 
             let config = Config {
-                current_project: Some(project),
+                current_project: None,
+                current_auth_app: Some(project),
             };
 
             let spinner = Spinner::new(
@@ -167,7 +139,7 @@ pub async fn process_projects(commands: Commands) -> Result<CommandResult> {
             );
             match home::home_dir() {
                 Some(path) => {
-                    debug!(path.to_str().unwrap());
+                    debug!("{}", path.to_str().unwrap());
                     let mut file = OpenOptions::new()
                         .create(true)
                         .write(true)
