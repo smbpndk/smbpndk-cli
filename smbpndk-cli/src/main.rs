@@ -2,7 +2,11 @@ use anyhow::{anyhow, Result};
 use clap::Parser;
 use console::style;
 use dotenv::dotenv;
-use std::{fs::OpenOptions, path::PathBuf, str::FromStr};
+use std::{
+    fs::{create_dir_all, OpenOptions},
+    path::PathBuf,
+    str::FromStr,
+};
 
 use smbpndk_cli::{
     account::process_account,
@@ -17,7 +21,22 @@ use tracing_subscriber::{filter::LevelFilter, prelude::*, EnvFilter};
 
 fn setup_logging(level: Option<EnvFilter>) -> Result<()> {
     // Log in the current directory
-    let log_path = PathBuf::from("smbpndk-cli.log");
+    let log_path = match home::home_dir() {
+        Some(path) => {
+            create_dir_all(path.join(".smb"))?;
+            let log_path = [path.to_str().unwrap(), "/.smb/smbpndk-cli.log"].join("");
+            // Create the file if it doesn't exist
+            let _file = OpenOptions::new()
+                .create(true)
+                .write(true)
+                .open(&log_path)?;
+
+            PathBuf::from(log_path)
+        }
+        None => {
+            return Err(anyhow!("Could not find home directory."));
+        }
+    };
 
     let file = OpenOptions::new()
         .create(true)
