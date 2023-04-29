@@ -1,11 +1,4 @@
-use std::{
-    fmt::{Display, Formatter},
-    fs,
-    io::{BufRead, BufReader, Write},
-    net::{TcpListener, TcpStream},
-    sync::mpsc::{self, Receiver, Sender},
-};
-
+use crate::account::model::{Data, Status, User};
 use anyhow::{anyhow, Result};
 use console::{style, Term};
 use dialoguer::{theme::ColorfulTheme, Input, Password, Select};
@@ -13,14 +6,17 @@ use log::debug;
 use regex::Regex;
 use reqwest::{Client, StatusCode};
 use serde::{Deserialize, Serialize};
+use smbpndk_model::CommandResult;
 use smbpndk_networking::constants::BASE_URL;
 use spinners::Spinner;
-use url_builder::URLBuilder;
-
-use crate::{
-    account::model::{Data, Status, User},
-    cli::CommandResult,
+use std::{
+    fmt::{Display, Formatter},
+    fs,
+    io::{BufRead, BufReader, Write},
+    net::{TcpListener, TcpStream},
+    sync::mpsc::{self, Receiver, Sender},
 };
+use url_builder::URLBuilder;
 
 use super::SignupMethod;
 pub struct SignupArgs {

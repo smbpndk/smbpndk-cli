@@ -1,20 +1,16 @@
-use std::{
-    fs::{self, create_dir_all, OpenOptions},
-    io::Write,
-};
-
+use crate::account::model::{Data, Status, User};
 use anyhow::{anyhow, Result};
 use console::style;
 use dialoguer::{theme::ColorfulTheme, Input, Password};
 use log::debug;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
+use smbpndk_model::CommandResult;
 use smbpndk_networking::constants::BASE_URL;
 use spinners::Spinner;
-
-use crate::{
-    account::model::{Data, Status, User},
-    cli::CommandResult,
+use std::{
+    fs::{self, create_dir_all, OpenOptions},
+    io::Write,
 };
 
 pub struct LoginArgs {

@@ -39,6 +39,9 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "async-trait",
+ "clap",
+ "console",
+ "dialoguer",
  "dirs",
  "home",
  "log",
@@ -48,6 +51,8 @@ dependencies = [
  "serde_json",
  "smbpndk-model",
  "smbpndk-networking",
+ "smbpndk-utils",
+ "spinners",
  "thiserror",
 ]
 
@@ -1132,6 +1137,7 @@ version = "0.1.0"
 dependencies = [
  "serde",
  "serde_json",
+ "spinners",
 ]
 
 [[package]]

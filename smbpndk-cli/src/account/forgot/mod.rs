@@ -3,11 +3,10 @@ use console::style;
 use dialoguer::{theme::ColorfulTheme, Input, Password};
 use reqwest::{Client, StatusCode};
 use serde::{Deserialize, Serialize};
+use smbpndk_model::CommandResult;
 use smbpndk_networking::constants::BASE_URL;
 use smbpndk_utils::email_validation;
 use spinners::Spinner;
-
-use crate::cli::CommandResult;
 
 #[derive(Debug, Serialize)]
 struct Args {

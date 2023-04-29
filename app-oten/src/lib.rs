@@ -1,3 +1,6 @@
+pub mod cli;
+pub mod handler;
+
 use anyhow::{anyhow, Result};
 use log::debug;
 use reqwest::Client;
@@ -40,8 +43,7 @@ pub async fn get_auth_app(id: &str) -> Result<AuthApp> {
             Ok(auth_app)
         }
         _ => Err(anyhow!(format!(
-            "Failed to find an auth app with id: {}.",
-            id
+            "Failed to find an auth app with id: {id}."
         ))),
     }
 }

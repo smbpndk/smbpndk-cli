@@ -17,6 +17,7 @@ path = "src/main.rs"
 
 [dependencies]
 anyhow = "1.0.58"
+app-oten = { path = "../app-oten" }
 clap = { version = "4.1.6", features = ["derive"] }
 clap_mangen = "0.2.10"
 console = "0.15.0"
@@ -32,7 +33,6 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1.0.82"
 smbpndk-model = { path = "../smbpndk-model" }
 smbpndk-networking = { path = "../smbpndk-networking" }
-app-oten = { path = "../app-oten" }
 smbpndk-networking-project = { path = "../smbpndk-networking-project" }
 smbpndk-utils = { path = "../smbpndk-utils" }
 spinners = "4.1.0"
