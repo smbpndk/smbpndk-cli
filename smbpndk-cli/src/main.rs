@@ -102,6 +102,6 @@ async fn run() -> Result<CommandResult> {
     match cli.command {
         Commands::Account { command } => process_account(command).await,
         Commands::Project { command } => process_project(command).await,
-        Commands::AuthApp { command } => process_auth_app(command).await,
+        Commands::Oten { command } => process_auth_app(command).await,
     }
 }
