@@ -30,6 +30,36 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "224afbd727c3d6e4b90103ece64b8d1b67fbb1973b1046c2281eed3f3803f800"
 
 [[package]]
+name = "app-fun"
+version = "0.1.0"
+
+[[package]]
+name = "app-oten"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "dirs",
+ "home",
+ "log",
+ "maybe-async",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "smbpndk-model",
+ "smbpndk-networking",
+ "thiserror",
+]
+
+[[package]]
+name = "app-pkt"
+version = "0.1.0"
+
+[[package]]
+name = "app-rdb"
+version = "0.1.0"
+
+[[package]]
 name = "async-trait"
 version = "0.1.66"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1067,9 +1097,10 @@ checksum = "a507befe795404456341dfab10cef66ead4c041f62b8b11bbb92bffe5d0953e0"
 
 [[package]]
 name = "smbpndk-cli"
-version = "0.2.1"
+version = "0.2.2"
 dependencies = [
  "anyhow",
+ "app-oten",
  "clap",
  "clap_mangen",
  "console",
@@ -1085,7 +1116,6 @@ dependencies = [
  "serde_json",
  "smbpndk-model",
  "smbpndk-networking",
- "smbpndk-networking-auth-app",
  "smbpndk-networking-project",
  "smbpndk-utils",
  "spinners",
@@ -1118,24 +1148,6 @@ dependencies = [
  "serde",
  "serde_json",
  "smbpndk-model",
- "thiserror",
-]
-
-[[package]]
-name = "smbpndk-networking-auth-app"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "async-trait",
- "dirs",
- "home",
- "log",
- "maybe-async",
- "reqwest",
- "serde",
- "serde_json",
- "smbpndk-model",
- "smbpndk-networking",
  "thiserror",
 ]
 

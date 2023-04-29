@@ -39,4 +39,22 @@ pub enum Commands {
         #[clap(subcommand)]
         command: auth_app::cli::Commands,
     },
+    // Function
+    /*
+    FunApp {
+        #[clap(subcommand)]
+        command: fun_app::cli::Commands,
+    }, */
+    // Package
+    /*
+    PktApp {
+        #[clap(subcommand)]
+        command: pkt_app::cli::Commands,
+    }, */
+    // Relational database
+    /*
+    RdbApp {
+        #[clap(subcommand)]
+        command: rdb_app::cli::Commands,
+    }, */
 }
