@@ -10,8 +10,8 @@ use self::{
     login::{process_login, process_logout},
     signup::process_signup,
 };
-use crate::cli::CommandResult;
 use anyhow::Result;
+use smbpndk_model::CommandResult;
 
 pub async fn process_account(commands: Commands) -> Result<CommandResult> {
     match commands {

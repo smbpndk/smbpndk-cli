@@ -1,20 +1,19 @@
 use anyhow::{anyhow, Result};
+use app_oten::{self, handler::process_auth_app};
 use clap::Parser;
 use console::style;
 use dotenv::dotenv;
+use smbpndk_cli::{
+    account::process_account,
+    cli::{Cli, Commands},
+    project::process_project,
+};
+use smbpndk_model::CommandResult;
 use std::{
     fs::{create_dir_all, OpenOptions},
     path::PathBuf,
     str::FromStr,
 };
-
-use smbpndk_cli::{
-    account::process_account,
-    auth_app::process_auth_app,
-    cli::{Cli, CommandResult, Commands},
-    project::process_project,
-};
-
 use tracing::subscriber::set_global_default;
 use tracing_bunyan_formatter::{BunyanFormattingLayer, JsonStorageLayer};
 use tracing_subscriber::{filter::LevelFilter, prelude::*, EnvFilter};
@@ -103,6 +102,6 @@ async fn run() -> Result<CommandResult> {
     match cli.command {
         Commands::Account { command } => process_account(command).await,
         Commands::Project { command } => process_project(command).await,
-        Commands::AuthApp { command } => process_auth_app(command).await,
+        Commands::Oten { command } => process_auth_app(command).await,
     }
 }

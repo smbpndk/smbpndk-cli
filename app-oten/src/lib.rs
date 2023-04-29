@@ -1,10 +1,13 @@
+pub mod cli;
+pub mod handler;
+
 use anyhow::{anyhow, Result};
 use log::debug;
 use reqwest::Client;
 use smbpndk_model::{AuthApp, AuthAppCreate};
 use smbpndk_networking::{constants::BASE_URL, get_token};
 
-pub async fn get_auth_apps() -> Result<Vec<AuthApp>> {
+async fn get_auth_apps() -> Result<Vec<AuthApp>> {
     // Get current token
     let token = get_token().await?;
 
@@ -23,7 +26,7 @@ pub async fn get_auth_apps() -> Result<Vec<AuthApp>> {
     }
 }
 
-pub async fn get_auth_app(id: &str) -> Result<AuthApp> {
+async fn get_auth_app(id: &str) -> Result<AuthApp> {
     // Get current token
     let token = get_token().await?;
 
@@ -40,13 +43,12 @@ pub async fn get_auth_app(id: &str) -> Result<AuthApp> {
             Ok(auth_app)
         }
         _ => Err(anyhow!(format!(
-            "Failed to find an auth app with id: {}.",
-            id
+            "Failed to find an auth app with id: {id}."
         ))),
     }
 }
 
-pub async fn delete_auth_app(id: String) -> Result<()> {
+async fn delete_auth_app(id: String) -> Result<()> {
     // Get current token
     let token = get_token().await?;
 
@@ -65,7 +67,7 @@ pub async fn delete_auth_app(id: String) -> Result<()> {
     }
 }
 
-pub async fn create_auth_app(auth_app: AuthAppCreate) -> Result<AuthApp> {
+async fn create_auth_app(auth_app: AuthAppCreate) -> Result<AuthApp> {
     // Get current token
     let token = get_token().await?;
 

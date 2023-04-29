@@ -1,17 +1,14 @@
 pub mod cli;
 
+use self::cli::Commands;
 use anyhow::{anyhow, Result};
 use console::style;
 use dialoguer::{theme::ColorfulTheme, Input};
 use log::debug;
-use smbpndk_model::{Config, ProjectCreate};
+use smbpndk_model::{CommandResult, Config, ProjectCreate};
 use smbpndk_networking_project::{create_project, delete_project, get_all, get_project};
 use spinners::Spinner;
 use std::{fs::OpenOptions, io::Write};
-
-use crate::cli::CommandResult;
-
-use self::cli::Commands;
 
 pub async fn process_project(commands: Commands) -> Result<CommandResult> {
     match commands {

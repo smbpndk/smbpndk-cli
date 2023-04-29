@@ -1,13 +1,10 @@
-use crate::{auth_app::cli::Commands, cli::CommandResult};
+use crate::{cli::Commands, create_auth_app, delete_auth_app, get_auth_app, get_auth_apps};
 use anyhow::{anyhow, Result};
 use console::style;
 use dialoguer::{theme::ColorfulTheme, Confirm, Input};
-use smbpndk_model::AuthAppCreate;
-use smbpndk_networking_auth_app::{create_auth_app, delete_auth_app, get_auth_app, get_auth_apps};
+use smbpndk_model::{AuthAppCreate, CommandResult};
 use smbpndk_utils::{get_config, write_config};
 use spinners::Spinner;
-
-pub(crate) mod cli;
 
 pub async fn process_auth_app(commands: Commands) -> Result<CommandResult> {
     match commands {

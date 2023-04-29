@@ -30,6 +30,41 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "224afbd727c3d6e4b90103ece64b8d1b67fbb1973b1046c2281eed3f3803f800"
 
 [[package]]
+name = "app-fun"
+version = "0.1.0"
+
+[[package]]
+name = "app-oten"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "clap",
+ "console",
+ "dialoguer",
+ "dirs",
+ "home",
+ "log",
+ "maybe-async",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "smbpndk-model",
+ "smbpndk-networking",
+ "smbpndk-utils",
+ "spinners",
+ "thiserror",
+]
+
+[[package]]
+name = "app-pkt"
+version = "0.1.0"
+
+[[package]]
+name = "app-rdb"
+version = "0.1.0"
+
+[[package]]
 name = "async-trait"
 version = "0.1.66"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -780,6 +815,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6ac9a59f73473f1b8d852421e59e64809f025994837ef743615c6d0c5b305160"
 
 [[package]]
+name = "pre-commit"
+version = "0.5.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d0f2b9887f84ec91cd86f71c193b883209d744bc8c2a3363c6b1df88efa5af8f"
+dependencies = [
+ "rustc-serialize",
+ "toml",
+]
+
+[[package]]
 name = "proc-macro-error"
 version = "1.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -918,6 +963,12 @@ name = "roff"
 version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b833d8d034ea094b1ea68aa6d5c740e0d04bad9d16568d08ba6f76823a114316"
+
+[[package]]
+name = "rustc-serialize"
+version = "0.3.24"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "dcf128d1287d2ea9d80910b5f1120d0b8eede3fbf1abe91c40d39ea7d51e6fda"
 
 [[package]]
 name = "rustix"
@@ -1067,9 +1118,10 @@ checksum = "a507befe795404456341dfab10cef66ead4c041f62b8b11bbb92bffe5d0953e0"
 
 [[package]]
 name = "smbpndk-cli"
-version = "0.2.1"
+version = "0.2.2"
 dependencies = [
  "anyhow",
+ "app-oten",
  "clap",
  "clap_mangen",
  "console",
@@ -1079,13 +1131,13 @@ dependencies = [
  "home",
  "log",
  "open",
+ "pre-commit",
  "regex",
  "reqwest",
  "serde",
  "serde_json",
  "smbpndk-model",
  "smbpndk-networking",
- "smbpndk-networking-auth-app",
  "smbpndk-networking-project",
  "smbpndk-utils",
  "spinners",
@@ -1102,6 +1154,7 @@ version = "0.1.0"
 dependencies = [
  "serde",
  "serde_json",
+ "spinners",
 ]
 
 [[package]]
@@ -1118,24 +1171,6 @@ dependencies = [
  "serde",
  "serde_json",
  "smbpndk-model",
- "thiserror",
-]
-
-[[package]]
-name = "smbpndk-networking-auth-app"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "async-trait",
- "dirs",
- "home",
- "log",
- "maybe-async",
- "reqwest",
- "serde",
- "serde_json",
- "smbpndk-model",
- "smbpndk-networking",
  "thiserror",
 ]
 
@@ -1379,6 +1414,15 @@ dependencies = [
  "pin-project-lite",
  "tokio",
  "tracing",
+]
+
+[[package]]
+name = "toml"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "736b60249cb25337bc196faa43ee12c705e426f3d55c214d73a4e7be06f92cb4"
+dependencies = [
+ "rustc-serialize",
 ]
 
 [[package]]

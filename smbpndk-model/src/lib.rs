@@ -1,4 +1,11 @@
 use serde::{Deserialize, Serialize};
+use spinners::Spinner;
+
+pub struct CommandResult {
+    pub spinner: Spinner,
+    pub symbol: String,
+    pub msg: String,
+}
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct AuthApp {
