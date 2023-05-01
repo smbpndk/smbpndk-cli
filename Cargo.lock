@@ -1123,7 +1123,10 @@ name = "smbpndk-cli"
 version = "0.2.2"
 dependencies = [
  "anyhow",
+ "app-fun",
  "app-oten",
+ "app-pkt",
+ "app-rdb",
  "clap",
  "clap_mangen",
  "console",
