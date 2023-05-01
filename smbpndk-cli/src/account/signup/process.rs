@@ -8,6 +8,7 @@ use reqwest::{Client, StatusCode};
 use serde::{Deserialize, Serialize};
 use smbpndk_model::CommandResult;
 use smbpndk_networking::constants::BASE_URL;
+use smbpndk_utils::email_validation;
 use spinners::Spinner;
 use std::{
     fmt::{Display, Formatter},
@@ -54,18 +55,10 @@ async fn signup_with_email(email: Option<String>) -> Result<CommandResult> {
         email
     } else {
         Input::<String>::with_theme(&ColorfulTheme::default())
-                .with_prompt("Username")
-                .validate_with(|input: &String| -> Result<(), &str> {
-                    let email_regex = Regex::new(r"^([a-z0-9_+]([a-z0-9_+.]*[a-z0-9_+])?)@([a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,6})").unwrap();
-
-                    if email_regex.is_match(input) {
-                        Ok(())
-                    } else {
-                        Err("Username must be an email address")
-                    }
-                })
-                .interact()
-                .unwrap()
+            .with_prompt("Username")
+            .validate_with(|email: &String| email_validation(email))
+            .interact()
+            .unwrap()
     };
 
     let password = Password::with_theme(&ColorfulTheme::default())
