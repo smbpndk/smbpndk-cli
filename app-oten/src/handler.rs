@@ -53,13 +53,16 @@ pub async fn process_auth_app(commands: Commands) -> Result<CommandResult> {
                 Ok(auth_apps) => {
                     println!("auth_apps: {auth_apps:#?}");
                     println!(
-                        "{0: <5} | {1: <20} | {2: <30} | {3: <30}",
+                        "{0: <10} | {1: <30} | {2: <10} | {3: <10}",
                         "ID", "Name", "Created at", "Updated at"
                     );
                     for project in auth_apps {
+                        let id = project.id.split("-").collect::<Vec<&str>>()[0].to_owned();
+                        let created_at = project.created_at.date_naive();
+                        let updated_at = project.updated_at.date_naive();
                         println!(
-                            "{0: <5} | {1: <20} | {2: <30} | {3: <30}",
-                            project.id, project.name, project.created_at, project.updated_at
+                            "{0: <10} | {1: <30} | {2: <10} | {3: <10}",
+                            id, project.name, created_at, updated_at
                         );
                     }
                     Ok(CommandResult {
