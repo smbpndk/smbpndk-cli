@@ -7,6 +7,7 @@ use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use smbpndk_model::CommandResult;
 use smbpndk_networking::constants::BASE_URL;
+use smbpndk_utils::email_validation;
 use spinners::Spinner;
 use std::{
     fs::{self, create_dir_all, OpenOptions},
@@ -33,6 +34,7 @@ pub async fn process_login() -> Result<CommandResult> {
     println!("Provide your login credentials.");
     let username = Input::<String>::with_theme(&ColorfulTheme::default())
         .with_prompt("Username")
+        .validate_with(|email: &String| email_validation(email))
         .interact()
         .unwrap();
     let password = Password::with_theme(&ColorfulTheme::default())
