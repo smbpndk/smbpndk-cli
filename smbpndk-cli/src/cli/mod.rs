@@ -32,11 +32,10 @@ pub enum Commands {
         command: app_oten::cli::Commands,
     },
     // Function
-    /*
-    FunApp {
+    Fun {
         #[clap(subcommand)]
-        command: fun_app::cli::Commands,
-    }, */
+        command: app_fun::cli::Commands,
+    },
     // Package
     /*
     PktApp {

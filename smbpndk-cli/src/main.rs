@@ -1,4 +1,5 @@
 use anyhow::{anyhow, Result};
+use app_fun::handler::process_fun_app;
 use app_oten::{self, handler::process_auth_app};
 use clap::Parser;
 use console::style;
@@ -103,5 +104,6 @@ async fn run() -> Result<CommandResult> {
         Commands::Account { command } => process_account(command).await,
         Commands::Project { command } => process_project(command).await,
         Commands::Oten { command } => process_auth_app(command).await,
+        Commands::Fun { command } => process_fun_app(command).await,
     }
 }
