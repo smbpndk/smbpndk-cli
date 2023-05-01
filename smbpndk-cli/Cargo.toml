@@ -17,9 +17,9 @@ path = "src/main.rs"
 
 [dependencies]
 anyhow = "1.0.58"
-app-pkt = { path = "../app-pkt" }
 app-fun = { path = "../app-fun" }
 app-oten = { path = "../app-oten" }
+app-pkt = { path = "../app-pkt" }
 app-rdb = { path = "../app-rdb" }
 clap = { version = "4.1.6", features = ["derive"] }
 clap_mangen = "0.2.10"
