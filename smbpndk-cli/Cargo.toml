@@ -18,7 +18,7 @@ path = "src/main.rs"
 [dependencies]
 anyhow = "1.0.58"
 app-oten = { path = "../app-oten" }
-clap = { version = "4.1.6", features = ["derive"] }
+clap = { version = "4.1", features = ["derive"] }
 clap_mangen = "0.2.10"
 console = "0.15.0"
 dialoguer = "0.10.4"
@@ -42,7 +42,4 @@ tracing = { version = "0.1.35", features = ["log"] }
 tracing-bunyan-formatter = "0.3.3"
 tracing-subscriber = { version = "0.3.14", features = ["registry", "env-filter"] }
 url-builder = "0.1.1"
-
-[package.metadata.precommit]
-fmt = "cargo fmt"
-sort = "cargo sort -w"
+clap_complete = "4.1"
