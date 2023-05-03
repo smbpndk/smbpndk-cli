@@ -2,6 +2,13 @@
 name = "app-fun"
 version = "0.2.3"
 edition = "2021"
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+authors = ["Seto Elkahfi <hej@setoelkahfi.se>"]
+description = "Command line tool for creating and managing SmbPndk resources."
+license = "Apache-2.0"
+repository = "https://github.com/smbpndk/smbpndk-cli"
+documentation = "https://docs.smbpndk.com/cli"
+keywords = ["cli", "cloud", "developer", "platform"]
+categories = ["command-line-utilities", "cloud", "modular", "web2", "web3", "smbpndk"]
+readme = "../README.md"
 
 [dependencies]
