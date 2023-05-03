@@ -8,7 +8,7 @@ license = "Apache-2.0"
 repository = "https://github.com/smbpndk/smbpndk-cli"
 documentation = "https://docs.smbpndk.com/cli"
 keywords = ["cli", "cloud", "developer", "platform"]
-categories = ["command-line-utilities", "cloud", "modular", "web2", "web3", "smbpndk"]
+categories = ["command-line-utilities", "cloud", "web2", "web3", "smbpndk"]
 readme = "../README.md"
 
 [[bin]]
