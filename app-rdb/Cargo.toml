@@ -1,7 +1,14 @@
 [package]
 name = "app-rdb"
-version = "0.1.0"
+version = "0.3.2"
 edition = "2021"
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+authors = ["Seto Elkahfi <hej@setoelkahfi.se>"]
+description = "Command line tool for creating and managing SmbPndk resources."
+license = "Apache-2.0"
+repository = "https://github.com/smbpndk/smbpndk-cli"
+documentation = "https://docs.smbpndk.com/cli"
+keywords = ["cli", "cloud", "web2", "web3", "smbpndk"]
+categories = ["command-line-utilities", "command-line-interface", "cryptography::cryptocurrencies", "development-tools", "wasm"]
+readme = "../README.md"
 
 [dependencies]

@@ -83,16 +83,3 @@ pub struct ProjectCreate {
     pub name: String,
     pub description: String,
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn it_parse_auth_app() {
-        let data = r#"{
-
-        }"#;
-        //let auth_app = serde_json::from_value(data.into());
-    }
-}
