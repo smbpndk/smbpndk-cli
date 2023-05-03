@@ -1,6 +1,6 @@
 [package]
 name = "smbpndk-networking-project"
-version = "0.3.0"
+version = "0.3.1"
 edition = "2021"
 authors = ["Seto Elkahfi <hej@setoelkahfi.se>"]
 description = "Command line tool for creating and managing SmbPndk resources."
