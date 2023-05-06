@@ -1,6 +1,8 @@
 use anyhow::{anyhow, Result};
 use app_fun::handler::process_fun_app;
-use app_oten::{self, handler::process_auth_app};
+use app_oten::handler::process_oten_app;
+use app_pkt::handler::process_pkt_app;
+use app_rdb::handler::process_rdb_app;
 use clap::Parser;
 use console::style;
 use dotenv::dotenv;
@@ -103,7 +105,9 @@ async fn run() -> Result<CommandResult> {
     match cli.command {
         Commands::Account { command } => process_account(command).await,
         Commands::Project { command } => process_project(command).await,
-        Commands::Oten { command } => process_auth_app(command).await,
+        Commands::Oten { command } => process_oten_app(command).await,
         Commands::Fun { command } => process_fun_app(command).await,
+        Commands::Pkt { command } => process_pkt_app(command).await,
+        Commands::Rdb { command } => process_rdb_app(command).await,
     }
 }

@@ -1,4 +1,4 @@
-use crate::{cli::Commands, create_oten_app, delete_oten_app, get_oten_app, get_oten_apps};
+use crate::{cli::Commands, create_rdb_app, delete_rdb_app, get_rdb_app, get_rdb_apps};
 use anyhow::{anyhow, Result};
 use console::style;
 use dialoguer::{theme::ColorfulTheme, Confirm, Input};
@@ -6,7 +6,7 @@ use smbpndk_model::{AppCreate, CommandResult};
 use smbpndk_utils::{get_config, write_config};
 use spinners::Spinner;
 
-pub async fn process_oten_app(commands: Commands) -> Result<CommandResult> {
+pub async fn process_rdb_app(commands: Commands) -> Result<CommandResult> {
     match commands {
         Commands::New {} => {
             let app_name = Input::<String>::with_theme(&ColorfulTheme::default())
@@ -20,10 +20,10 @@ pub async fn process_oten_app(commands: Commands) -> Result<CommandResult> {
 
             let spinner = Spinner::new(
                 spinners::Spinners::SimpleDotsScrolling,
-                style("Creating an Oten app...").green().bold().to_string(),
+                style("Creating a Pkt app...").green().bold().to_string(),
             );
 
-            match create_oten_app(AppCreate {
+            match create_rdb_app(AppCreate {
                 name: app_name.clone(),
                 description: description.clone(),
             })
@@ -32,14 +32,14 @@ pub async fn process_oten_app(commands: Commands) -> Result<CommandResult> {
                 Ok(_) => Ok(CommandResult {
                     spinner,
                     symbol: "✅".to_owned(),
-                    msg: format!("An oten app created: {app_name}."),
+                    msg: format!("A Pkt app created: {app_name}."),
                 }),
                 Err(e) => {
                     println!("Error: {e:#?}");
                     Ok(CommandResult {
                         spinner,
                         symbol: "😩".to_owned(),
-                        msg: format!("Failed to create an oten app: {app_name}."),
+                        msg: format!("Failed to create a Pkt app: {app_name}."),
                     })
                 }
             }
@@ -49,14 +49,14 @@ pub async fn process_oten_app(commands: Commands) -> Result<CommandResult> {
                 spinners::Spinners::SimpleDotsScrolling,
                 style("Loading...").green().bold().to_string(),
             );
-            match get_oten_apps().await {
-                Ok(oten_apps) => {
-                    println!("oten_apps: {oten_apps:#?}");
+            match get_rdb_apps().await {
+                Ok(apps) => {
+                    println!("Rdb apps: {apps:#?}");
                     println!(
                         "{0: <10} | {1: <30} | {2: <10} | {3: <10}",
                         "ID", "Name", "Created at", "Updated at"
                     );
-                    for project in oten_apps {
+                    for project in apps {
                         let id = project.id.split('-').collect::<Vec<&str>>()[0].to_owned();
                         let created_at = project.created_at.date_naive();
                         let updated_at = project.updated_at.date_naive();
@@ -68,7 +68,7 @@ pub async fn process_oten_app(commands: Commands) -> Result<CommandResult> {
                     Ok(CommandResult {
                         spinner,
                         symbol: "✅".to_owned(),
-                        msg: "Showing all oten apps.".to_owned(),
+                        msg: "Showing all auth apps.".to_owned(),
                     })
                 }
                 Err(e) => {
@@ -76,7 +76,7 @@ pub async fn process_oten_app(commands: Commands) -> Result<CommandResult> {
                     Ok(CommandResult {
                         spinner,
                         symbol: "😩".to_owned(),
-                        msg: "Failed to get all oten apps.".to_owned(),
+                        msg: "Failed to get all auth apps.".to_owned(),
                     })
                 }
             }
@@ -86,18 +86,18 @@ pub async fn process_oten_app(commands: Commands) -> Result<CommandResult> {
                 spinners::Spinners::SimpleDotsScrolling,
                 style("Loading...").green().bold().to_string(),
             );
-            match get_oten_app(&id).await {
+            match get_rdb_app(&id).await {
                 Ok(_) => Ok(CommandResult {
                     spinner,
                     symbol: "✅".to_owned(),
-                    msg: "Showing oten app.".to_owned(),
+                    msg: "Showing auth app.".to_owned(),
                 }),
                 Err(e) => {
                     println!("Error: {e:#?}");
                     Ok(CommandResult {
                         spinner,
                         symbol: "😩".to_owned(),
-                        msg: "Failed to get an oten app.".to_owned(),
+                        msg: "Failed to get an auth app.".to_owned(),
                     })
                 }
             }
@@ -107,18 +107,18 @@ pub async fn process_oten_app(commands: Commands) -> Result<CommandResult> {
                 spinners::Spinners::SimpleDotsScrolling,
                 style("Loading...").green().bold().to_string(),
             );
-            match delete_oten_app(id).await {
+            match delete_rdb_app(id).await {
                 Ok(_) => Ok(CommandResult {
                     spinner,
                     symbol: "✅".to_owned(),
-                    msg: "Delete oten app succeed.".to_owned(),
+                    msg: "Delete auth app succeed.".to_owned(),
                 }),
                 Err(e) => {
                     println!("Error: {e:#?}");
                     Ok(CommandResult {
                         spinner,
                         symbol: "😩".to_owned(),
-                        msg: "Failed to delete oten app.".to_owned(),
+                        msg: "Failed to delete auth app.".to_owned(),
                     })
                 }
             }
@@ -129,15 +129,15 @@ pub async fn process_oten_app(commands: Commands) -> Result<CommandResult> {
                 style("Checking config file...").green().bold().to_string(),
             );
 
-            let oten_app = get_oten_app(&id).await?;
+            let rdb_app = get_rdb_app(&id).await?;
             let mut config = get_config().await?;
 
-            if let Some(oten_app) = config.current_oten_app {
-                if oten_app.id != id {
+            if let Some(rdb_app) = config.current_rdb_app {
+                if rdb_app.id != id {
                     spinner.stop_with_message("Found a config.".to_string());
                     let yes = Confirm::new()
                         .with_prompt(format!(
-                            "Will change active oten_app to {}. Do you want to continue?",
+                            "Will change active Pkt app to {}. Do you want to continue?",
                             &id
                         ))
                         .interact()?;
@@ -155,7 +155,7 @@ pub async fn process_oten_app(commands: Commands) -> Result<CommandResult> {
                 }
             }
 
-            config.current_oten_app = Some(oten_app);
+            config.current_rdb_app = Some(rdb_app);
             let spinner = Spinner::new(
                 spinners::Spinners::SimpleDotsScrolling,
                 style("Saving config...").green().bold().to_string(),
@@ -164,7 +164,7 @@ pub async fn process_oten_app(commands: Commands) -> Result<CommandResult> {
                 Ok(_) => Ok(CommandResult {
                     spinner,
                     symbol: "✅".to_owned(),
-                    msg: format!("Using oten_app: {:?}", &id),
+                    msg: format!("Using Pkt app: {:?}", &id),
                 }),
                 Err(_) => {
                     let error = anyhow!("Failed while writing config.");

@@ -40,19 +40,30 @@ checksum = "224afbd727c3d6e4b90103ece64b8d1b67fbb1973b1046c2281eed3f3803f800"
 
 [[package]]
 name = "app-fun"
-version = "0.1.0"
+version = "0.3.2"
 dependencies = [
  "anyhow",
+ "async-trait",
  "clap",
  "console",
  "dialoguer",
+ "dirs",
+ "home",
+ "log",
+ "maybe-async",
+ "reqwest",
+ "serde",
+ "serde_json",
  "smbpndk-model",
+ "smbpndk-networking",
+ "smbpndk-utils",
  "spinners",
+ "thiserror",
 ]
 
 [[package]]
 name = "app-oten"
-version = "0.1.0"
+version = "0.3.2"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -75,11 +86,49 @@ dependencies = [
 
 [[package]]
 name = "app-pkt"
-version = "0.1.0"
+version = "0.3.2"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "clap",
+ "console",
+ "dialoguer",
+ "dirs",
+ "home",
+ "log",
+ "maybe-async",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "smbpndk-model",
+ "smbpndk-networking",
+ "smbpndk-utils",
+ "spinners",
+ "thiserror",
+]
 
 [[package]]
 name = "app-rdb"
-version = "0.1.0"
+version = "0.3.2"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "clap",
+ "console",
+ "dialoguer",
+ "dirs",
+ "home",
+ "log",
+ "maybe-async",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "smbpndk-model",
+ "smbpndk-networking",
+ "smbpndk-utils",
+ "spinners",
+ "thiserror",
+]
 
 [[package]]
 name = "async-trait"
@@ -1265,7 +1314,7 @@ checksum = "a507befe795404456341dfab10cef66ead4c041f62b8b11bbb92bffe5d0953e0"
 
 [[package]]
 name = "smbpndk-cli"
-version = "0.2.2"
+version = "0.3.2"
 dependencies = [
  "anyhow",
  "app-fun",
@@ -1300,7 +1349,7 @@ dependencies = [
 
 [[package]]
 name = "smbpndk-model"
-version = "0.1.0"
+version = "0.3.2"
 dependencies = [
  "chrono",
  "serde",
@@ -1310,7 +1359,7 @@ dependencies = [
 
 [[package]]
 name = "smbpndk-networking"
-version = "0.1.0"
+version = "0.3.2"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -1327,7 +1376,7 @@ dependencies = [
 
 [[package]]
 name = "smbpndk-networking-project"
-version = "0.1.0"
+version = "0.3.2"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -1345,7 +1394,7 @@ dependencies = [
 
 [[package]]
 name = "smbpndk-utils"
-version = "0.1.0"
+version = "0.3.2"
 dependencies = [
  "anyhow",
  "dirs",

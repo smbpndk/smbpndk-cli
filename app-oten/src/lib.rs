@@ -4,56 +4,56 @@ pub mod handler;
 use anyhow::{anyhow, Result};
 use log::debug;
 use reqwest::Client;
-use smbpndk_model::{AuthApp, AuthAppCreate};
+use smbpndk_model::{AppCreate, Oten};
 use smbpndk_networking::{constants::BASE_URL, get_token};
 
-async fn get_auth_apps() -> Result<Vec<AuthApp>> {
+async fn get_oten_apps() -> Result<Vec<Oten>> {
     // Get current token
     let token = get_token().await?;
 
     let response = Client::new()
-        .get([BASE_URL, "v1/auth_apps"].join(""))
+        .get([BASE_URL, "v1/oten_apps"].join(""))
         .header("Authorization", token)
         .send()
         .await?;
 
     match response.status() {
         reqwest::StatusCode::OK => {
-            let auth_apps: Vec<AuthApp> = response.json().await?;
-            Ok(auth_apps)
+            let oten_apps: Vec<Oten> = response.json().await?;
+            Ok(oten_apps)
         }
-        _ => Err(anyhow!("Failed to fetch auth apps.")),
+        _ => Err(anyhow!("Failed to fetch oten apps.")),
     }
 }
 
-async fn get_auth_app(id: &str) -> Result<AuthApp> {
+async fn get_oten_app(id: &str) -> Result<Oten> {
     // Get current token
     let token = get_token().await?;
 
     let response = Client::new()
-        .get([BASE_URL, "v1/auth_apps/", id].join(""))
+        .get([BASE_URL, "v1/oten_apps/", id].join(""))
         .header("Authorization", token)
         .send()
         .await?;
 
     match response.status() {
         reqwest::StatusCode::OK => {
-            let auth_app: AuthApp = response.json().await?;
-            println!("Auth app requested: {auth_app:#?}");
-            Ok(auth_app)
+            let oten_app: Oten = response.json().await?;
+            println!("Auth app requested: {oten_app:#?}");
+            Ok(oten_app)
         }
         _ => Err(anyhow!(format!(
-            "Failed to find an auth app with id: {id}."
+            "Failed to find an oten app with id: {id}."
         ))),
     }
 }
 
-async fn delete_auth_app(id: String) -> Result<()> {
+async fn delete_oten_app(id: String) -> Result<()> {
     // Get current token
     let token = get_token().await?;
 
     let response = Client::new()
-        .delete([BASE_URL, "v1/auth_apps/", &id].join(""))
+        .delete([BASE_URL, "v1/oten_apps/", &id].join(""))
         .header("Authorization", token)
         .send()
         .await?;
@@ -63,27 +63,27 @@ async fn delete_auth_app(id: String) -> Result<()> {
             debug!("Project deleted.");
             Ok(())
         }
-        _ => Err(anyhow!("Failed to delete an auth app.")),
+        _ => Err(anyhow!("Failed to delete an oten app.")),
     }
 }
 
-async fn create_auth_app(auth_app: AuthAppCreate) -> Result<AuthApp> {
+async fn create_oten_app(oten_app: AppCreate) -> Result<Oten> {
     // Get current token
     let token = get_token().await?;
 
     let response = Client::new()
-        .post([BASE_URL, "v1/auth_apps"].join(""))
-        .json(&auth_app)
+        .post([BASE_URL, "v1/oten_apps"].join(""))
+        .json(&oten_app)
         .header("Authorization", token)
         .send()
         .await?;
 
     match response.status() {
         reqwest::StatusCode::CREATED => {
-            let auth_app: AuthApp = response.json().await?;
-            println!("Project created: {auth_app:#?}");
-            Ok(auth_app)
+            let oten_app: Oten = response.json().await?;
+            println!("Project created: {oten_app:#?}");
+            Ok(oten_app)
         }
-        _ => Err(anyhow!("Failed to create an auth app.")),
+        _ => Err(anyhow!("Failed to create an oten app.")),
     }
 }

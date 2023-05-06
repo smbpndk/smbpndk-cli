@@ -20,32 +20,39 @@ pub enum Commands {
         command: account::cli::Commands,
     },
 
-    #[clap(about = "Manage your projects. Add, delete, edit. Need authentication.")]
+    #[clap(about = "Manage your projects. Add, show, delete, edit. Need authentication.")]
     Project {
         #[clap(subcommand)]
         command: project::cli::Commands,
     },
 
-    #[clap(about = "Manage your Oten authentication app. Add, delete, edit. Need authentication.")]
+    #[clap(
+        about = "Manage your Oten authentication app. Add, show, delete, edit. Need authentication."
+    )]
     Oten {
         #[clap(subcommand)]
         command: app_oten::cli::Commands,
     },
-    // Function
+
+    #[clap(
+        about = "Manage your Fun serverless app. Add, show, delete, edit. Need authentication."
+    )]
     Fun {
         #[clap(subcommand)]
         command: app_fun::cli::Commands,
     },
-    // Package
-    /*
-    PktApp {
+
+    #[clap(
+        about = "Manage your Pkt package manager app. Add, show, delete, edit. Need authentication."
+    )]
+    Pkt {
         #[clap(subcommand)]
-        command: pkt_app::cli::Commands,
-    }, */
-    // Relational database
-    /*
-    RdbApp {
+        command: app_pkt::cli::Commands,
+    },
+
+    #[clap(about = "Manage your Rdb database app. Add, show, delete, edit. Need authentication.")]
+    Rdb {
         #[clap(subcommand)]
-        command: rdb_app::cli::Commands,
-    }, */
+        command: app_rdb::cli::Commands,
+    },
 }

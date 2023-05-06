@@ -6,7 +6,7 @@ mod ar_date_format {
     use chrono::{DateTime, TimeZone, Utc};
     use serde::{self, Deserialize, Deserializer, Serializer};
 
-    const FORMAT: &'static str = "%Y-%m-%dT%H:%M:%S%.f%#z";
+    const FORMAT: &str = "%Y-%m-%dT%H:%M:%S%.f%#z";
 
     // The signature of a serialize_with function must follow the pattern:
     //
@@ -47,7 +47,7 @@ pub struct CommandResult {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct AuthApp {
+pub struct Oten {
     pub id: String,
     pub secret: Option<String>,
     pub name: String,
@@ -58,7 +58,40 @@ pub struct AuthApp {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct AuthAppCreate {
+pub struct Fun {
+    pub id: String,
+    pub secret: Option<String>,
+    pub name: String,
+    #[serde(with = "ar_date_format")]
+    pub created_at: DateTime<Utc>,
+    #[serde(with = "ar_date_format")]
+    pub updated_at: DateTime<Utc>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Pkt {
+    pub id: String,
+    pub secret: Option<String>,
+    pub name: String,
+    #[serde(with = "ar_date_format")]
+    pub created_at: DateTime<Utc>,
+    #[serde(with = "ar_date_format")]
+    pub updated_at: DateTime<Utc>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Rdb {
+    pub id: String,
+    pub secret: Option<String>,
+    pub name: String,
+    #[serde(with = "ar_date_format")]
+    pub created_at: DateTime<Utc>,
+    #[serde(with = "ar_date_format")]
+    pub updated_at: DateTime<Utc>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct AppCreate {
     pub name: String,
     pub description: String,
 }
@@ -66,7 +99,10 @@ pub struct AuthAppCreate {
 #[derive(Deserialize, Debug, Serialize)]
 pub struct Config {
     pub current_project: Option<Project>,
-    pub current_auth_app: Option<AuthApp>,
+    pub current_oten_app: Option<Oten>,
+    pub current_fun_app: Option<Fun>,
+    pub current_pkt_app: Option<Pkt>,
+    pub current_rdb_app: Option<Rdb>,
 }
 
 #[derive(Deserialize, Debug, Serialize)]

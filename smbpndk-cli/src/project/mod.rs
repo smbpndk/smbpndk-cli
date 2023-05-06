@@ -131,7 +131,10 @@ pub async fn process_project(commands: Commands) -> Result<CommandResult> {
 
             let config = Config {
                 current_project: Some(project),
-                current_auth_app: None,
+                current_oten_app: None,
+                current_fun_app: None,
+                current_pkt_app: None,
+                current_rdb_app: None,
             };
 
             let spinner = Spinner::new(
@@ -144,7 +147,7 @@ pub async fn process_project(commands: Commands) -> Result<CommandResult> {
                     let mut file = OpenOptions::new()
                         .create(true)
                         .write(true)
-                        .open([path.to_str().unwrap(), "/.smb/config.json"].join(""))?;
+                        .open([path.to_str().unwrap(), "/.smb/config"].join(""))?;
                     let json = serde_json::to_string(&config)?;
                     file.write_all(json.as_bytes())?;
 
