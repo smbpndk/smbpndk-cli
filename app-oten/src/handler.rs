@@ -2,19 +2,25 @@ use crate::{cli::Commands, create_oten_app, delete_oten_app, get_oten_app, get_o
 use anyhow::{anyhow, Result};
 use console::style;
 use dialoguer::{theme::ColorfulTheme, Confirm, Input};
-use smbpndk_model::{AppCreate, CommandResult};
+use smbpndk_model::{
+    create_params::{self, AppCreate},
+    CommandResult,
+};
 use smbpndk_utils::{get_config, write_config};
 use spinners::Spinner;
 
 pub async fn process_oten_app(commands: Commands) -> Result<CommandResult> {
     match commands {
         Commands::New {} => {
+            let config = get_config().await?;
+            if config.current_project.is_none() {
+                return Err(anyhow!(
+                    "No project selected. Please select a project first. Run `smb project use <id>`."
+                ));
+            }
+
             let app_name = Input::<String>::with_theme(&ColorfulTheme::default())
                 .with_prompt("App name")
-                .interact()
-                .unwrap();
-            let description = Input::<String>::with_theme(&ColorfulTheme::default())
-                .with_prompt("Description")
                 .interact()
                 .unwrap();
 
@@ -23,9 +29,11 @@ pub async fn process_oten_app(commands: Commands) -> Result<CommandResult> {
                 style("Creating an Oten app...").green().bold().to_string(),
             );
 
-            match create_oten_app(AppCreate {
-                name: app_name.clone(),
-                description: description.clone(),
+            match create_oten_app(create_params::Oten {
+                oten_app: AppCreate {
+                    name: app_name.clone(),
+                    project_id: config.current_project.unwrap().id,
+                },
             })
             .await
             {

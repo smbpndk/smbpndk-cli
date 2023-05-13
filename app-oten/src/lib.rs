@@ -4,7 +4,7 @@ pub mod handler;
 use anyhow::{anyhow, Result};
 use log::debug;
 use reqwest::Client;
-use smbpndk_model::{AppCreate, Oten};
+use smbpndk_model::{create_params, Oten};
 use smbpndk_networking::{constants::BASE_URL, get_token};
 
 async fn get_oten_apps() -> Result<Vec<Oten>> {
@@ -67,7 +67,7 @@ async fn delete_oten_app(id: String) -> Result<()> {
     }
 }
 
-async fn create_oten_app(oten_app: AppCreate) -> Result<Oten> {
+async fn create_oten_app(oten_app: create_params::Oten) -> Result<Oten> {
     // Get current token
     let token = get_token().await?;
 

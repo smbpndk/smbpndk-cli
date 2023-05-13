@@ -23,8 +23,5 @@ pub enum Commands {
     },
 
     #[clap(about = "Use project for current CLI session.")]
-    Use {
-        #[clap(short, long, required = true)]
-        id: String,
-    },
+    Use {},
 }

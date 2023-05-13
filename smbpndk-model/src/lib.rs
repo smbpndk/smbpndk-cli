@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use spinners::Spinner;
@@ -96,6 +98,21 @@ pub struct AppCreate {
     pub description: String,
 }
 
+pub mod create_params {
+    use serde::{Deserialize, Serialize};
+
+    #[derive(Deserialize, Debug, Serialize)]
+    pub struct Oten {
+        pub oten_app: AppCreate,
+    }
+
+    #[derive(Deserialize, Debug, Serialize)]
+    pub struct AppCreate {
+        pub name: String,
+        pub project_id: i32,
+    }
+}
+
 #[derive(Deserialize, Debug, Serialize)]
 pub struct Config {
     pub current_project: Option<Project>,
@@ -105,7 +122,7 @@ pub struct Config {
     pub current_rdb_app: Option<Rdb>,
 }
 
-#[derive(Deserialize, Debug, Serialize)]
+#[derive(Deserialize, Debug, Serialize, Clone)]
 pub struct Project {
     pub id: i32,
     pub name: String,
@@ -113,6 +130,20 @@ pub struct Project {
     pub created_at: DateTime<Utc>,
     #[serde(with = "ar_date_format")]
     pub updated_at: DateTime<Utc>,
+}
+
+impl Display for Project {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let id = self.id.to_string();
+        let name = self.name.to_string();
+        let created_at = self.created_at.date_naive();
+        let updated_at = self.updated_at.date_naive();
+        write!(
+            f,
+            "{0: <5} | {1: <20} | {2: <30} | {3: <30}",
+            id, name, created_at, updated_at
+        )
+    }
 }
 #[derive(Serialize, Debug)]
 pub struct ProjectCreate {

@@ -2,10 +2,10 @@ pub mod cli;
 
 use self::cli::Commands;
 use anyhow::{anyhow, Result};
-use console::style;
-use dialoguer::{theme::ColorfulTheme, Input};
+use console::{style, Term};
+use dialoguer::{theme::ColorfulTheme, Input, Select};
 use log::debug;
-use smbpndk_model::{CommandResult, Config, ProjectCreate};
+use smbpndk_model::{CommandResult, Config, Project, ProjectCreate};
 use smbpndk_networking_project::{create_project, delete_project, get_all, get_project};
 use spinners::Spinner;
 use std::{fs::OpenOptions, io::Write};
@@ -126,8 +126,9 @@ pub async fn process_project(commands: Commands) -> Result<CommandResult> {
                 }
             }
         }
-        Commands::Use { id } => {
-            let project = get_project(id).await?;
+        Commands::Use {} => {
+            let project = get_all().await?;
+            let project = select_project(project)?;
 
             let config = Config {
                 current_project: Some(project),
@@ -164,4 +165,16 @@ pub async fn process_project(commands: Commands) -> Result<CommandResult> {
             }
         }
     }
+}
+
+fn select_project(projects: Vec<Project>) -> Result<Project> {
+    let selection = Select::with_theme(&ColorfulTheme::default())
+        .with_prompt("Select project to use:")
+        .items(&projects)
+        .default(0)
+        .interact_on_opt(&Term::stderr())
+        .map(|i| &projects[i.unwrap()])
+        .unwrap()
+        .to_owned();
+    Ok(selection)
 }

@@ -21,7 +21,7 @@ pub fn email_validation(input: &str) -> Result<(), &'static str> {
 pub async fn get_config() -> Result<Config> {
     match home::home_dir() {
         Some(mut path) => {
-            path.push(".smb/config.json");
+            path.push(".smb/config");
             if !path.exists() {
                 let config = Config {
                     current_project: None,
@@ -36,8 +36,10 @@ pub async fn get_config() -> Result<Config> {
                 debug!("Error while reading config file: {}", &e);
                 anyhow!("Error while reading config file. Are you logged in?")
             })?;
+            print!("config_string: {:#?}", config_string);
             let config: Config = serde_json::from_str(&config_string).map_err(|e| {
                 debug!("Error while parsing config: {}", &e);
+                print!("Error while parsing config: {}", &e);
                 anyhow!("Error while parsing config. Are you logged in?")
             })?;
 
