@@ -1,10 +1,13 @@
-use crate::account::{model::{Data, Status, User}, lib::{process_connect_github, authorize_github}};
+use crate::account::{
+    lib::{authorize_github, process_connect_github},
+    model::{Data, Status, User},
+};
 use anyhow::{anyhow, Result};
 use console::{style, Term};
 use dialoguer::{theme::ColorfulTheme, Input, Password, Select};
 use log::debug;
 use reqwest::{Client, StatusCode};
-use serde::{Deserialize, Serialize, de};
+use serde::{de, Deserialize, Serialize};
 use smbpndk_model::CommandResult;
 use smbpndk_networking::constants::BASE_URL;
 use smbpndk_utils::email_validation;
@@ -97,12 +100,15 @@ async fn signup_with_github() -> Result<CommandResult> {
             Ok(CommandResult {
                 spinner: Spinner::new(
                     spinners::Spinners::BouncingBall,
-                    style("Requesting GitHub token...").green().bold().to_string(),
+                    style("Requesting GitHub token...")
+                        .green()
+                        .bold()
+                        .to_string(),
                 ),
                 symbol: style("✅".to_string()).for_stderr().green().to_string(),
                 msg: "Finished requesting GitHub token!".to_owned(),
             })
-        },
+        }
         Err(e) => {
             let error = anyhow!("Failed to get code from channel: {e}");
             Err(error)

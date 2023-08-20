@@ -1,19 +1,20 @@
+use anyhow::{anyhow, Result};
 use console::style;
 use log::debug;
+use regex::Regex;
 use reqwest::{Client, StatusCode};
 use serde::{Deserialize, Serialize};
 use smbpndk_model::CommandResult;
 use spinners::Spinner;
-use anyhow::{anyhow, Result};
-use url_builder::URLBuilder;
 use std::{
+    env,
     fmt::{Display, Formatter},
     fs,
     io::{BufRead, BufReader, Write},
     net::{TcpListener, TcpStream},
-    sync::mpsc::{self, Receiver, Sender}, env,
+    sync::mpsc::{self, Receiver, Sender},
 };
-use regex::Regex;
+use url_builder::URLBuilder;
 
 // This is smb authorization model.
 #[derive(Debug, Serialize, Deserialize)]
@@ -115,7 +116,6 @@ fn handle_connection(mut stream: TcpStream, tx: Sender<String>) {
     stream.flush().unwrap();
 }
 
-
 // Get access token
 pub async fn process_connect_github(code: String) -> Result<SmbAuthorization> {
     let response = Client::new()
@@ -163,10 +163,8 @@ fn build_github_oauth_url() -> String {
 }
 
 fn smb_base_url_builder() -> URLBuilder {
-    let client_id =
-        env::var("SMB_CLIENT_ID").expect("Please set SMB_CLIENT_ID");
-    let client_secret =
-        env::var("SMB_CLIENT_SECRET").expect("Please set SMB_CLIENT_SECRET");
+    let client_id = env::var("SMB_CLIENT_ID").expect("Please set SMB_CLIENT_ID");
+    let client_secret = env::var("SMB_CLIENT_SECRET").expect("Please set SMB_CLIENT_SECRET");
     let mut url_builder = URLBuilder::new();
     url_builder
         .set_protocol("https")
@@ -179,8 +177,9 @@ fn smb_base_url_builder() -> URLBuilder {
 fn github_base_url_builder() -> URLBuilder {
     let client_id = env::var("GH_OAUTH_CLIENT_ID").expect("Please set GH_OAUTH_CLIENT_ID");
     let redirect_host =
-    env::var("GH_OAUTH_REDIRECT_HOST").expect("Please set GH_OAUTH_REDIRECT_HOST");
-    let redirect_port = env::var("GH_OAUTH_REDIRECT_PORT").expect("Please set GH_OAUTH_REDIRECT_PORT");
+        env::var("GH_OAUTH_REDIRECT_HOST").expect("Please set GH_OAUTH_REDIRECT_HOST");
+    let redirect_port =
+        env::var("GH_OAUTH_REDIRECT_PORT").expect("Please set GH_OAUTH_REDIRECT_PORT");
     let redirect_url = format!("{}:{}", &redirect_host, &redirect_port);
 
     let mut url_builder = URLBuilder::new();

@@ -1,9 +1,9 @@
 pub mod cli;
 pub mod forgot;
+pub mod lib;
 pub mod login;
 pub mod model;
 pub mod signup;
-pub mod lib;
 
 use self::{
     cli::Commands,

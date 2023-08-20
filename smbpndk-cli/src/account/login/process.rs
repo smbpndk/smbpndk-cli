@@ -1,4 +1,8 @@
-use crate::account::{model::{Data, Status, User}, signup::SignupMethod, lib::authorize_github};
+use crate::account::{
+    lib::authorize_github,
+    model::{Data, Status, User},
+    signup::SignupMethod,
+};
 use anyhow::{anyhow, Result};
 use console::{style, Term};
 use dialoguer::{theme::ColorfulTheme, Input, Password, Select};
@@ -57,7 +61,7 @@ async fn login_with_github() -> Result<CommandResult> {
                 symbol: "✅".to_owned(),
                 msg: "You are logged in!".to_owned(),
             })
-        },
+        }
         Err(_) => {
             let error = anyhow!("Failed to login with GitHub.");
             Err(error)
