@@ -1,7 +1,7 @@
-use crate::account::model::{Data, Status, User};
+use crate::account::{model::{Data, Status, User}, signup::SignupMethod, lib::authorize_github};
 use anyhow::{anyhow, Result};
-use console::style;
-use dialoguer::{theme::ColorfulTheme, Input, Password};
+use console::{style, Term};
+use dialoguer::{theme::ColorfulTheme, Input, Password, Select};
 use log::debug;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
@@ -31,6 +31,41 @@ struct LoginResult {
 }
 
 pub async fn process_login() -> Result<CommandResult> {
+    let signup_methods = vec![SignupMethod::Email, SignupMethod::GitHub];
+    let selection = Select::with_theme(&ColorfulTheme::default())
+        .items(&signup_methods)
+        .default(0)
+        .interact_on_opt(&Term::stderr())
+        .map(|i| signup_methods[i.unwrap()])
+        .unwrap();
+
+    match selection {
+        SignupMethod::Email => login_with_email().await,
+        SignupMethod::GitHub => login_with_github().await,
+    }
+}
+
+async fn login_with_github() -> Result<CommandResult> {
+    match authorize_github().await {
+        Ok(_) => {
+            let spinner = Spinner::new(
+                spinners::Spinners::SimpleDotsScrolling,
+                style("Logging you in...").green().bold().to_string(),
+            );
+            Ok(CommandResult {
+                spinner,
+                symbol: "✅".to_owned(),
+                msg: "You are logged in!".to_owned(),
+            })
+        },
+        Err(_) => {
+            let error = anyhow!("Failed to login with GitHub.");
+            Err(error)
+        }
+    }
+}
+
+async fn login_with_email() -> Result<CommandResult> {
     println!("Provide your login credentials.");
     let username = Input::<String>::with_theme(&ColorfulTheme::default())
         .with_prompt("Username")
