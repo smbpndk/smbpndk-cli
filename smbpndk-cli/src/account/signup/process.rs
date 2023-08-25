@@ -1,27 +1,53 @@
 use crate::account::{
-    lib::{authorize_github, process_connect_github},
-    model::{Data, Status, User},
+    lib::authorize_github,
+    model::{Data, Status},
 };
 use anyhow::{anyhow, Result};
 use console::{style, Term};
 use dialoguer::{theme::ColorfulTheme, Input, Password, Select};
 use log::debug;
 use reqwest::{Client, StatusCode};
-use serde::{de, Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 use smbpndk_model::CommandResult;
 use smbpndk_networking::constants::BASE_URL;
 use smbpndk_utils::email_validation;
 use spinners::Spinner;
 use std::fmt::{Display, Formatter};
-
 use super::SignupMethod;
+
 pub struct SignupArgs {
-    pub username: String,
-    pub password: String,
+    pub email: String,
+    pub password: Option<String>,
+    pub password_confirmation: Option<String>,
+    pub authorizations_attributes: Vec<Provider>
 }
+
 #[derive(Debug, Serialize)]
-pub struct SignupParams {
-    pub user: User,
+pub struct Provider {
+    pub uid: String,
+    pub provider: i8
+}
+
+#[derive(Debug, Serialize)]
+pub struct SignupGithubParams {
+    pub user: SignupUserGithub,
+}
+
+#[derive(Debug, Serialize)]
+pub struct SignupEmailParams {
+    pub user: SignupUserEmail,
+}
+
+#[derive(Debug, Serialize)]
+pub struct SignupUserGithub {
+    pub email: String,
+    pub authorizations_attributes: Vec<Provider>
+}
+
+#[derive(Debug, Serialize)]
+pub struct SignupUserEmail {
+    pub email: String,
+    pub password: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -45,7 +71,7 @@ pub async fn process_signup() -> Result<CommandResult> {
     }
 }
 
-async fn signup_with_email(email: Option<String>) -> Result<CommandResult> {
+pub async fn signup_with_email(email: Option<String>) -> Result<CommandResult> {
     let email = if let Some(email) = email {
         email
     } else {
@@ -74,12 +100,11 @@ async fn signup_with_email(email: Option<String>) -> Result<CommandResult> {
         style("Signing up...").green().bold().to_string(),
     );
 
-    match do_signup(SignupArgs {
-        username: email,
-        password,
-    })
-    .await
-    {
+    let params = SignupEmailParams {
+        user: SignupUserEmail { email, password },
+    };
+
+    match do_signup(&params).await {
         Ok(_) => Ok(CommandResult {
             spinner,
             symbol: style("✅".to_string()).for_stderr().green().to_string(),
@@ -123,8 +148,8 @@ struct GithubUser {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-struct GithubEmail {
-    email: String,
+pub struct GithubEmail {
+    pub email: String,
     primary: bool,
     verified: bool,
     visibility: Option<String>,
@@ -136,44 +161,33 @@ impl Display for GithubEmail {
     }
 }
 
-fn select_github_emails(github_emails: Vec<GithubEmail>) -> Result<GithubEmail> {
-    let selection = Select::with_theme(&ColorfulTheme::default())
-        .with_prompt("Select your email")
-        .items(&github_emails)
-        .default(0)
-        .interact_on_opt(&Term::stderr())
-        .map(|i| &github_emails[i.unwrap()])
-        .unwrap()
-        .to_owned();
-    Ok(selection)
-}
-
-async fn do_signup(args: SignupArgs) -> Result<()> {
-    let signup_params = SignupParams {
-        user: User {
-            email: args.username,
-            password: args.password,
-        },
-    };
+pub async fn do_signup<T: Serialize + ?Sized>(args: &T) -> Result<CommandResult> {
+    let spinner = Spinner::new(
+        spinners::Spinners::BouncingBall,
+        style("Signing you up...")
+            .green()
+            .bold()
+            .to_string(),
+    );
 
     let response = Client::new()
         .post([BASE_URL, "/v1/users"].join(""))
-        .json(&signup_params)
+        .json(&args)
         .send()
         .await?;
 
     match response.status() {
-        StatusCode::OK => {}
+        StatusCode::OK => {
+            Ok(CommandResult { spinner, symbol: "Yes".to_owned(), msg: "Success. Check email".to_owned() })
+        }
         StatusCode::UNPROCESSABLE_ENTITY => {
             let result: SignupResult = response.json().await?;
             let error = anyhow!("Failed to signup: {}", result.status.message);
-            return Err(error);
+            Err(error)
         }
         _ => {
             let error = anyhow!("Failed to signup: {}", response.status());
-            return Err(error);
+            Err(error)
         }
     }
-
-    Ok(())
 }

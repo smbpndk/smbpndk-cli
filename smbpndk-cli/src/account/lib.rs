@@ -4,24 +4,54 @@ use log::debug;
 use regex::Regex;
 use reqwest::{Client, StatusCode};
 use serde::{Deserialize, Serialize};
-use smbpndk_model::CommandResult;
+
 use spinners::Spinner;
 use std::{
     env,
-    fmt::{Display, Formatter},
     fs,
     io::{BufRead, BufReader, Write},
     net::{TcpListener, TcpStream},
-    sync::mpsc::{self, Receiver, Sender},
+    sync::mpsc::{self, Receiver, Sender}, fmt::{Display, Formatter},
 };
 use url_builder::URLBuilder;
+
+use super::{model::User, signup::GithubEmail};
 
 // This is smb authorization model.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct SmbAuthorization {
-    access_token: String,
-    scope: String,
-    token_type: String,
+    pub message: String,
+    pub user: Option<User>,
+    pub user_email: Option<GithubEmail>,
+    pub user_info: Option<GithubInfo>,
+    pub error_code: Option<ErrorCode>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub enum ErrorCode {
+    EmailNotFound = 1000,
+    EmailUnverified = 1001,
+}
+
+impl Display for ErrorCode {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ErrorCode::EmailNotFound => write!(f, "Email not found."),
+            ErrorCode::EmailUnverified => write!(f, "Email not verified."),
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct GithubInfo {
+    pub id: i64,
+    pub login: String,
+    pub name: String,
+    pub avatar_url: String,
+    pub html_url: String,
+    pub email: Option<String>,
+    pub created_at: String,
+    pub updated_at: String,
 }
 
 pub async fn authorize_github() -> Result<SmbAuthorization> {
@@ -101,11 +131,11 @@ fn handle_connection(mut stream: TcpStream, tx: Sender<String>) {
                     debug!("Failed to send code to channel: {e}");
                 }
             }
-            ("HTTP/1.1 200 OK", "./src/account/hello.html")
+            ("HTTP/1.1 200 OK", "./smbpndk-cli/src/account/hello.html")
         }
         None => {
             debug!("Code not found.");
-            ("HTTP/1.1 404 NOT FOUND", "./src/account/404.html")
+            ("HTTP/1.1 404 NOT FOUND", "./smbpndk-cli/src/account/404.html")
         }
     };
 
@@ -119,37 +149,54 @@ fn handle_connection(mut stream: TcpStream, tx: Sender<String>) {
 // Get access token
 pub async fn process_connect_github(code: String) -> Result<SmbAuthorization> {
     let response = Client::new()
-        .post(build_authorize_smb_url(code))
+        .post(build_authorize_smb_url())
+        .body(format!("gh_code={}", code))
         .header("Accept", "application/json")
+        .header("Content-Type", "application/x-www-form-urlencoded")
         .send()
         .await?;
     let mut spinner = Spinner::new(
         spinners::Spinners::BouncingBall,
-        style("🚀 Requesting GitHub token...")
+        style("🚀 Authorizing your account...")
             .green()
             .bold()
             .to_string(),
     );
     match response.status() {
         StatusCode::OK => {
-            spinner.stop_and_persist("✅", "Finished requesting GitHub token!".into());
+            // Account authorized and token received
+            spinner.stop_and_persist("✅", "Finished authorizing your GitHub account!".into());
             debug!("Response: {:#?}", &response);
             let result: SmbAuthorization = response.json().await?;
             debug!("Result: {:#?}", &result);
             Ok(result)
-        }
+        },
+        StatusCode::NOT_FOUND => {
+            // Account not found and we show signup option
+            spinner.stop_and_persist("✅", "Finished requesting GitHub token!".into());
+            let result: SmbAuthorization = response.json().await?;
+            debug!("Result: {:#?}", &result);
+            Ok(result)
+        },
+        StatusCode::UNPROCESSABLE_ENTITY => {
+            // Account found but email not verified
+            spinner.stop_and_persist("✅", "Finished requesting GitHub token!".into());
+            let result: SmbAuthorization = response.json().await?;
+            debug!("Result: {:#?}", &result);
+            Ok(result)
+        },
         _ => {
-            let error = anyhow!("Error while requesting GitHub token.");
+            // Other errors
+            let error = anyhow!("Error while authorizing token.");
             Err(error)
         }
     }
 }
 
-fn build_authorize_smb_url(code: String) -> String {
+fn build_authorize_smb_url() -> String {
     let mut url_builder = smb_base_url_builder();
     url_builder
-        .add_route("v1/authorize")
-        .add_param("gh_code", &code);
+        .add_route("v1/authorize");
     url_builder.build()
 }
 
@@ -162,13 +209,15 @@ fn build_github_oauth_url() -> String {
     url_builder.build()
 }
 
-fn smb_base_url_builder() -> URLBuilder {
+pub fn smb_base_url_builder() -> URLBuilder {
     let client_id = env::var("SMB_CLIENT_ID").expect("Please set SMB_CLIENT_ID");
     let client_secret = env::var("SMB_CLIENT_SECRET").expect("Please set SMB_CLIENT_SECRET");
+    let api_host = env::var("SMB_API_HOST").expect("Please set SMB_API_HOST");
+    let api_protocol = env::var("SMB_API_PROTOCOL").expect("Please set SMB_API_PROTOCOL");
     let mut url_builder = URLBuilder::new();
     url_builder
-        .set_protocol("https")
-        .set_host("api.smbpndk.com")
+        .set_protocol(&api_protocol)
+        .set_host(&api_host)
         .add_param("client_id", &client_id)
         .add_param("client_secret", &client_secret);
     url_builder

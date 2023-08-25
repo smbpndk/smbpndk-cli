@@ -1,11 +1,11 @@
 use crate::account::{
-    lib::authorize_github,
+    lib::{authorize_github, SmbAuthorization, ErrorCode, GithubInfo, smb_base_url_builder},
     model::{Data, Status, User},
-    signup::SignupMethod,
+    signup::{SignupMethod, GithubEmail, do_signup, SignupGithubParams, SignupUserGithub, Provider},
 };
 use anyhow::{anyhow, Result};
 use console::{style, Term};
-use dialoguer::{theme::ColorfulTheme, Input, Password, Select};
+use dialoguer::{theme::ColorfulTheme, Input, Password, Select, Confirm};
 use log::debug;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
@@ -51,28 +51,89 @@ pub async fn process_login() -> Result<CommandResult> {
 
 async fn login_with_github() -> Result<CommandResult> {
     match authorize_github().await {
-        Ok(_) => {
-            let spinner = Spinner::new(
-                spinners::Spinners::SimpleDotsScrolling,
-                style("Logging you in...").green().bold().to_string(),
-            );
-            Ok(CommandResult {
-                spinner,
-                symbol: "✅".to_owned(),
-                msg: "You are logged in!".to_owned(),
-            })
+        Ok(result) => {
+            process_authorization(result).await
         }
-        Err(_) => {
-            let error = anyhow!("Failed to login with GitHub.");
+        Err(err) => {
+            let error = anyhow!("Failed to authorize your GitHub account. {}", err);
             Err(error)
         }
     }
 }
 
+async fn process_authorization(auth: SmbAuthorization) -> Result<CommandResult>  {
+    // Logged in with GitHub
+    if let Some(user) = auth.user {
+        let spinner = Spinner::new(
+            spinners::Spinners::SimpleDotsScrolling,
+            style("Logging you in...").green().bold().to_string(),
+        );
+        return Ok(CommandResult {
+            spinner,
+            symbol: "✅".to_owned(),
+            msg: "You are logged in!".to_owned(),
+        })
+    }
+
+    // What to do if not logged in with GitHub?
+    if let Some(error_code) = auth.error_code {
+        debug!("{}", error_code);
+        match error_code {
+            ErrorCode::EmailNotFound => {
+                return create_new_account(auth.user_email, auth.user_info).await
+            },
+            ErrorCode::EmailUnverified => {
+                return send_email_verification(auth.user_email).await
+            }
+        }
+    }
+
+    let error = anyhow!("Failed to login with GitHub.");
+    Err(error)
+
+}
+
+async fn create_new_account(user_email: Option<GithubEmail>, user_info: Option<GithubInfo>) -> Result<CommandResult> {
+    let confirm = Confirm::with_theme(&ColorfulTheme::default())
+        .with_prompt("Do you want to create a new account?")
+        .interact()
+        .unwrap();
+
+    // Create account if user confirms
+    if !confirm {
+        let spinner = Spinner::new(
+            spinners::Spinners::SimpleDotsScrolling,
+            style("Logging you in...").green().bold().to_string(),
+        );
+        return Ok(CommandResult {
+            spinner,
+            symbol: "✅".to_owned(),
+            msg: "You are logged in!".to_owned(),
+        })
+    }
+
+    if let (Some(email), Some(info)) = (user_email, user_info) {
+        let params = SignupGithubParams {
+            user: SignupUserGithub {
+                email: email.email,
+                authorizations_attributes: vec![Provider { uid: info.id.to_string(), provider: 0 }],
+            } 
+        };
+
+        return do_signup(&params).await
+    }
+
+    Err(anyhow!("Shouldn't be here."))
+}
+
+async fn send_email_verification(user_email: Option<GithubEmail>) -> Result<CommandResult> {
+    Err(anyhow!("Failed to send email verification."))
+}
+
 async fn login_with_email() -> Result<CommandResult> {
     println!("Provide your login credentials.");
     let username = Input::<String>::with_theme(&ColorfulTheme::default())
-        .with_prompt("Username")
+        .with_prompt("Email")
         .validate_with(|email: &String| email_validation(email))
         .interact()
         .unwrap();
@@ -109,7 +170,7 @@ async fn do_process_login(args: LoginArgs) -> Result<()> {
     };
 
     let response = Client::new()
-        .post([BASE_URL, "/v1/users/sign_in"].join(""))
+        .post(build_smb_login_url())
         .json(&login_params)
         .send()
         .await?;
@@ -149,6 +210,12 @@ async fn do_process_login(args: LoginArgs) -> Result<()> {
     }
 
     Ok(())
+}
+
+fn build_smb_login_url() -> String {
+    let mut url_builder = smb_base_url_builder();
+    url_builder.add_route("v1/users/sign_in");
+    url_builder.build()
 }
 
 pub async fn process_logout() -> Result<CommandResult> {
