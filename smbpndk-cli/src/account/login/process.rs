@@ -76,6 +76,11 @@ async fn process_authorization(auth: SmbAuthorization) -> Result<CommandResult> 
                 return create_new_account(auth.user_email, auth.user_info).await
             }
             ErrorCode::EmailUnverified => return send_email_verification(auth.user).await,
+            ErrorCode::PasswordNotSet => {
+                // Only for email and password login
+                let error = anyhow!("Password not set.");
+                return Err(error);
+            }
         }
     }
 
@@ -258,7 +263,7 @@ async fn do_process_login(args: LoginArgs) -> Result<CommandResult> {
                     return Err(error);
                 }
             }
-        },
+        }
         StatusCode::NOT_FOUND => {
             // Account not found and we show signup option
             Ok(CommandResult {
@@ -269,17 +274,96 @@ async fn do_process_login(args: LoginArgs) -> Result<CommandResult> {
                 symbol: "✅".to_owned(),
                 msg: "Please signup!".to_owned(),
             })
-        },
+        }
         StatusCode::UNPROCESSABLE_ENTITY => {
-            // Account found but email not verified
-            println!("✅ Account found but email not verified.");
+            // Account found but email not verified / password not set
             let result: SmbAuthorization = response.json().await?;
-            // println!("Result: {:#?}", &result);
-            return send_email_verification(result.user).await;
-        },
+            println!("Result: {:#?}", &result);
+            return verify_or_set_password(result).await;
+        }
         _ => {
             let error = anyhow!("Login failed. Check your username and password.");
             return Err(error);
+        }
+    }
+}
+
+async fn verify_or_set_password(result: SmbAuthorization) -> Result<CommandResult> {
+    match result.error_code {
+        Some(error_code) => {
+            debug!("{}", error_code);
+            match error_code {
+                ErrorCode::EmailUnverified => {
+                    return send_email_verification(result.user).await
+                }
+                ErrorCode::PasswordNotSet => {
+                    return send_reset_password(result.user).await
+                }
+                _ => {
+                    let error = anyhow!("Shouldn't be here.");
+                    return Err(error);
+                }
+            }
+        }
+        None => {
+            let error = anyhow!("Shouldn't be here.");
+            return Err(error);
+        }     
+    }
+}
+
+async fn send_reset_password(user: Option<User>) -> Result<CommandResult> {
+    // Return early if user is null
+    if let Some(user) = user {
+        let confirm = Confirm::with_theme(&ColorfulTheme::default())
+            .with_prompt("Do you want to reset your password?")
+            .interact()
+            .unwrap();
+
+        // Send verification email if user confirms
+        if !confirm {
+            let spinner = Spinner::new(
+                spinners::Spinners::SimpleDotsScrolling,
+                style("Cancel operation.").green().bold().to_string(),
+            );
+            return Ok(CommandResult {
+                spinner,
+                symbol: "✅".to_owned(),
+                msg: "Doing nothing.".to_owned(),
+            });
+        }
+        resend_reset_password_instruction(user).await
+    } else {
+        let error = anyhow!("Failed to get user.");
+        Err(error)
+    }
+}
+
+async fn resend_reset_password_instruction(user: User) -> Result<CommandResult> {
+    let spinner = Spinner::new(
+        spinners::Spinners::SimpleDotsScrolling,
+        style("Sending reset password instruction...")
+            .green()
+            .bold()
+            .to_string(),
+    );
+    let response = Client::new()
+        .post(build_smb_resend_reset_password_instructions_url())
+        .body(format!("id={}", user.id))
+        .header("Accept", "application/json")
+        .header("Content-Type", "application/x-www-form-urlencoded")
+        .send()
+        .await?;
+
+    match response.status() {
+        reqwest::StatusCode::OK => Ok(CommandResult {
+            spinner,
+            symbol: "✅".to_owned(),
+            msg: "Reset password instruction sent!".to_owned(),
+        }),
+        _ => {
+            let error = anyhow!("Failed to send reset password instruction.");
+            Err(error)
         }
     }
 }
@@ -293,6 +377,12 @@ fn build_smb_login_url() -> String {
 fn build_smb_resend_email_verification_url() -> String {
     let mut url_builder = smb_base_url_builder();
     url_builder.add_route("v1/resend_confirmation");
+    url_builder.build()
+}
+
+fn build_smb_resend_reset_password_instructions_url() -> String {
+    let mut url_builder = smb_base_url_builder();
+    url_builder.add_route("v1/resend_reset_password_instructions");
     url_builder.build()
 }
 

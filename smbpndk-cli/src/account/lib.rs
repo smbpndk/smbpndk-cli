@@ -34,6 +34,7 @@ pub struct SmbAuthorization {
 pub enum ErrorCode {
     EmailNotFound = 1000,
     EmailUnverified = 1001,
+    PasswordNotSet = 1003,
 }
 
 impl Display for ErrorCode {
@@ -41,6 +42,7 @@ impl Display for ErrorCode {
         match self {
             ErrorCode::EmailNotFound => write!(f, "Email not found."),
             ErrorCode::EmailUnverified => write!(f, "Email not verified."),
+            ErrorCode::PasswordNotSet => write!(f, "Password not set."),
         }
     }
 }
