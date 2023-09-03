@@ -72,7 +72,9 @@ async fn process_authorization(auth: SmbAuthorization) -> Result<CommandResult> 
     if let Some(error_code) = auth.error_code {
         debug!("{}", error_code);
         match error_code {
-            ErrorCode::EmailNotFound => return create_new_account(auth.user_email, auth.user_info).await,
+            ErrorCode::EmailNotFound => {
+                return create_new_account(auth.user_email, auth.user_info).await
+            }
             ErrorCode::EmailUnverified => return send_email_verification(auth.user).await,
         }
     }
@@ -138,7 +140,6 @@ async fn create_new_account(
 async fn send_email_verification(user: Option<User>) -> Result<CommandResult> {
     // Return early if user is null
     if let Some(user) = user {
-
         let confirm = Confirm::with_theme(&ColorfulTheme::default())
             .with_prompt("Do you want to send a new verification email?")
             .interact()
@@ -166,7 +167,10 @@ async fn send_email_verification(user: Option<User>) -> Result<CommandResult> {
 async fn resend_email_verification(user: User) -> Result<CommandResult> {
     let spinner = Spinner::new(
         spinners::Spinners::SimpleDotsScrolling,
-        style("Sending verification email...").green().bold().to_string(),
+        style("Sending verification email...")
+            .green()
+            .bold()
+            .to_string(),
     );
 
     let response = Client::new()
@@ -178,13 +182,11 @@ async fn resend_email_verification(user: User) -> Result<CommandResult> {
         .await?;
 
     match response.status() {
-        reqwest::StatusCode::OK => {
-            Ok(CommandResult {
-                spinner,
-                symbol: "✅".to_owned(),
-                msg: "Verification email sent!".to_owned(),
-            })
-        }
+        reqwest::StatusCode::OK => Ok(CommandResult {
+            spinner,
+            symbol: "✅".to_owned(),
+            msg: "Verification email sent!".to_owned(),
+        }),
         _ => {
             let error = anyhow!("Failed to send verification email.");
             Err(error)
