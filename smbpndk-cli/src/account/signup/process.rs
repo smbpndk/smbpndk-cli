@@ -1,6 +1,6 @@
 use super::SignupMethod;
 use crate::account::{
-    lib::authorize_github,
+    lib::{authorize_github, smb_base_url_builder},
     model::{Data, Status},
 };
 use anyhow::{anyhow, Result};
@@ -10,7 +10,7 @@ use log::debug;
 use reqwest::{Client, StatusCode};
 use serde::{Deserialize, Serialize};
 use smbpndk_model::CommandResult;
-use smbpndk_networking::constants::BASE_URL;
+
 use smbpndk_utils::email_validation;
 use spinners::Spinner;
 use std::fmt::{Display, Formatter};
@@ -168,7 +168,7 @@ pub async fn do_signup<T: Serialize + ?Sized>(args: &T) -> Result<CommandResult>
     );
 
     let response = Client::new()
-        .post([BASE_URL, "/v1/users"].join(""))
+        .post(build_smb_signup_url())
         .json(&args)
         .send()
         .await?;
@@ -176,8 +176,8 @@ pub async fn do_signup<T: Serialize + ?Sized>(args: &T) -> Result<CommandResult>
     match response.status() {
         StatusCode::OK => Ok(CommandResult {
             spinner,
-            symbol: "Yes".to_owned(),
-            msg: "Success. Check email".to_owned(),
+            symbol: "✅".to_owned(),
+            msg: "Your account has been created. Check email for verification link.".to_owned(),
         }),
         StatusCode::UNPROCESSABLE_ENTITY => {
             let result: SignupResult = response.json().await?;
@@ -189,4 +189,10 @@ pub async fn do_signup<T: Serialize + ?Sized>(args: &T) -> Result<CommandResult>
             Err(error)
         }
     }
+}
+
+fn build_smb_signup_url() -> String {
+    let mut url_builder = smb_base_url_builder();
+    url_builder.add_route("v1/users");
+    url_builder.build()
 }

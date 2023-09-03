@@ -174,7 +174,7 @@ pub async fn process_connect_github(code: String) -> Result<SmbAuthorization> {
         StatusCode::OK => {
             // Account authorized and token received
             spinner.stop_and_persist("✅", "You're logged in with your GitHub account!".into());
-            let result: SmbAuthorization = response.json().await?;
+            let result = response.json().await?;
             println!("Result: {:#?}", &result);
             Ok(result)
         }
@@ -188,7 +188,7 @@ pub async fn process_connect_github(code: String) -> Result<SmbAuthorization> {
         StatusCode::UNPROCESSABLE_ENTITY => {
             // Account found but email not verified
             spinner.stop_and_persist("🥹", "Unverified email!".into());
-            let result: SmbAuthorization = response.json().await?;
+            let result = response.json().await?;
             println!("Result: {:#?}", &result);
             Ok(result)
         }
