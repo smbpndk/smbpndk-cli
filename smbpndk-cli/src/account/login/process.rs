@@ -293,12 +293,8 @@ async fn verify_or_set_password(result: SmbAuthorization) -> Result<CommandResul
         Some(error_code) => {
             debug!("{}", error_code);
             match error_code {
-                ErrorCode::EmailUnverified => {
-                    return send_email_verification(result.user).await
-                }
-                ErrorCode::PasswordNotSet => {
-                    return send_reset_password(result.user).await
-                }
+                ErrorCode::EmailUnverified => return send_email_verification(result.user).await,
+                ErrorCode::PasswordNotSet => return send_reset_password(result.user).await,
                 _ => {
                     let error = anyhow!("Shouldn't be here.");
                     return Err(error);
@@ -308,7 +304,7 @@ async fn verify_or_set_password(result: SmbAuthorization) -> Result<CommandResul
         None => {
             let error = anyhow!("Shouldn't be here.");
             return Err(error);
-        }     
+        }
     }
 }
 
