@@ -9,7 +9,7 @@ use anyhow::{anyhow, Result};
 use console::{style, Term};
 use dialoguer::{theme::ColorfulTheme, Confirm, Input, Password, Select};
 use log::debug;
-use reqwest::Client;
+use reqwest::{Client, StatusCode};
 use serde::{Deserialize, Serialize};
 use smbpndk_model::CommandResult;
 use smbpndk_utils::email_validation;
@@ -205,27 +205,10 @@ async fn login_with_email() -> Result<CommandResult> {
         .with_prompt("Password")
         .interact()
         .unwrap();
-
-    let spinner = Spinner::new(
-        spinners::Spinners::SimpleDotsScrolling,
-        style("Logging in...").green().bold().to_string(),
-    );
-
-    match do_process_login(LoginArgs { username, password }).await {
-        Ok(_) => Ok(CommandResult {
-            spinner,
-            symbol: "✅".to_owned(),
-            msg: "You are logged in!".to_owned(),
-        }),
-        Err(e) => Ok(CommandResult {
-            spinner,
-            symbol: "😩".to_owned(),
-            msg: format!("Failed to login: {e}"),
-        }),
-    }
+    do_process_login(LoginArgs { username, password }).await
 }
 
-async fn do_process_login(args: LoginArgs) -> Result<()> {
+async fn do_process_login(args: LoginArgs) -> Result<CommandResult> {
     let login_params = LoginParams {
         user: UserParam {
             email: args.username,
@@ -240,7 +223,7 @@ async fn do_process_login(args: LoginArgs) -> Result<()> {
         .await?;
 
     match response.status() {
-        reqwest::StatusCode::OK => {
+        StatusCode::OK => {
             let headers = response.headers();
             match headers.get("Authorization") {
                 Some(token) => {
@@ -254,6 +237,15 @@ async fn do_process_login(args: LoginArgs) -> Result<()> {
                                 .write(true)
                                 .open([path.to_str().unwrap(), "/.smb/token"].join(""))?;
                             file.write_all(token.to_str()?.as_bytes())?;
+
+                            Ok(CommandResult {
+                                spinner: Spinner::new(
+                                    spinners::Spinners::SimpleDotsScrolling,
+                                    style("Logging you in...").green().bold().to_string(),
+                                ),
+                                symbol: "✅".to_owned(),
+                                msg: "You are logged in!".to_owned(),
+                            })
                         }
                         None => {
                             let error = anyhow!("Failed to get home directory.");
@@ -266,14 +258,30 @@ async fn do_process_login(args: LoginArgs) -> Result<()> {
                     return Err(error);
                 }
             }
-        }
+        },
+        StatusCode::NOT_FOUND => {
+            // Account not found and we show signup option
+            Ok(CommandResult {
+                spinner: Spinner::new(
+                    spinners::Spinners::SimpleDotsScrolling,
+                    style("Account not found.").green().bold().to_string(),
+                ),
+                symbol: "✅".to_owned(),
+                msg: "Please signup!".to_owned(),
+            })
+        },
+        StatusCode::UNPROCESSABLE_ENTITY => {
+            // Account found but email not verified
+            println!("✅ Account found but email not verified.");
+            let result: SmbAuthorization = response.json().await?;
+            // println!("Result: {:#?}", &result);
+            return send_email_verification(result.user).await;
+        },
         _ => {
-            let error = anyhow!("Connection error. Check your username and password.");
+            let error = anyhow!("Login failed. Check your username and password.");
             return Err(error);
         }
     }
-
-    Ok(())
 }
 
 fn build_smb_login_url() -> String {
