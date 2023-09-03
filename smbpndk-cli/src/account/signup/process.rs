@@ -1,3 +1,4 @@
+use super::SignupMethod;
 use crate::account::{
     lib::authorize_github,
     model::{Data, Status},
@@ -13,19 +14,18 @@ use smbpndk_networking::constants::BASE_URL;
 use smbpndk_utils::email_validation;
 use spinners::Spinner;
 use std::fmt::{Display, Formatter};
-use super::SignupMethod;
 
 pub struct SignupArgs {
     pub email: String,
     pub password: Option<String>,
     pub password_confirmation: Option<String>,
-    pub authorizations_attributes: Vec<Provider>
+    pub authorizations_attributes: Vec<Provider>,
 }
 
 #[derive(Debug, Serialize)]
 pub struct Provider {
     pub uid: String,
-    pub provider: i8
+    pub provider: i8,
 }
 
 #[derive(Debug, Serialize)]
@@ -41,7 +41,7 @@ pub struct SignupEmailParams {
 #[derive(Debug, Serialize)]
 pub struct SignupUserGithub {
     pub email: String,
-    pub authorizations_attributes: Vec<Provider>
+    pub authorizations_attributes: Vec<Provider>,
 }
 
 #[derive(Debug, Serialize)]
@@ -147,7 +147,7 @@ struct GithubUser {
     name: String,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct GithubEmail {
     pub email: String,
     primary: bool,
@@ -164,10 +164,7 @@ impl Display for GithubEmail {
 pub async fn do_signup<T: Serialize + ?Sized>(args: &T) -> Result<CommandResult> {
     let spinner = Spinner::new(
         spinners::Spinners::BouncingBall,
-        style("Signing you up...")
-            .green()
-            .bold()
-            .to_string(),
+        style("Signing you up...").green().bold().to_string(),
     );
 
     let response = Client::new()
@@ -177,9 +174,11 @@ pub async fn do_signup<T: Serialize + ?Sized>(args: &T) -> Result<CommandResult>
         .await?;
 
     match response.status() {
-        StatusCode::OK => {
-            Ok(CommandResult { spinner, symbol: "Yes".to_owned(), msg: "Success. Check email".to_owned() })
-        }
+        StatusCode::OK => Ok(CommandResult {
+            spinner,
+            symbol: "Yes".to_owned(),
+            msg: "Success. Check email".to_owned(),
+        }),
         StatusCode::UNPROCESSABLE_ENTITY => {
             let result: SignupResult = response.json().await?;
             let error = anyhow!("Failed to signup: {}", result.status.message);

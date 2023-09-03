@@ -1,11 +1,13 @@
 use crate::account::{
-    lib::{authorize_github, SmbAuthorization, ErrorCode, GithubInfo, smb_base_url_builder},
+    lib::{authorize_github, smb_base_url_builder, ErrorCode, GithubInfo, SmbAuthorization},
     model::{Data, Status, User},
-    signup::{SignupMethod, GithubEmail, do_signup, SignupGithubParams, SignupUserGithub, Provider},
+    signup::{
+        do_signup, GithubEmail, Provider, SignupGithubParams, SignupMethod, SignupUserGithub,
+    },
 };
 use anyhow::{anyhow, Result};
 use console::{style, Term};
-use dialoguer::{theme::ColorfulTheme, Input, Password, Select, Confirm};
+use dialoguer::{theme::ColorfulTheme, Confirm, Input, Password, Select};
 use log::debug;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
@@ -51,9 +53,7 @@ pub async fn process_login() -> Result<CommandResult> {
 
 async fn login_with_github() -> Result<CommandResult> {
     match authorize_github().await {
-        Ok(result) => {
-            process_authorization(result).await
-        }
+        Ok(result) => process_authorization(result).await,
         Err(err) => {
             let error = anyhow!("Failed to authorize your GitHub account. {}", err);
             Err(error)
@@ -61,18 +61,19 @@ async fn login_with_github() -> Result<CommandResult> {
     }
 }
 
-async fn process_authorization(auth: SmbAuthorization) -> Result<CommandResult>  {
+async fn process_authorization(auth: SmbAuthorization) -> Result<CommandResult> {
     // Logged in with GitHub
     if let Some(user) = auth.user {
         let spinner = Spinner::new(
             spinners::Spinners::SimpleDotsScrolling,
             style("Logging you in...").green().bold().to_string(),
         );
+        // We're logged in with GitHub, but not with SMB.
         return Ok(CommandResult {
             spinner,
             symbol: "✅".to_owned(),
             msg: "You are logged in!".to_owned(),
-        })
+        });
     }
 
     // What to do if not logged in with GitHub?
@@ -81,19 +82,19 @@ async fn process_authorization(auth: SmbAuthorization) -> Result<CommandResult> 
         match error_code {
             ErrorCode::EmailNotFound => {
                 return create_new_account(auth.user_email, auth.user_info).await
-            },
-            ErrorCode::EmailUnverified => {
-                return send_email_verification(auth.user_email).await
             }
+            ErrorCode::EmailUnverified => return send_email_verification(auth.user_email).await,
         }
     }
 
-    let error = anyhow!("Failed to login with GitHub.");
+    let error: anyhow::Error = anyhow!("Failed to login with GitHub.");
     Err(error)
-
 }
 
-async fn create_new_account(user_email: Option<GithubEmail>, user_info: Option<GithubInfo>) -> Result<CommandResult> {
+async fn create_new_account(
+    user_email: Option<GithubEmail>,
+    user_info: Option<GithubInfo>,
+) -> Result<CommandResult> {
     let confirm = Confirm::with_theme(&ColorfulTheme::default())
         .with_prompt("Do you want to create a new account?")
         .interact()
@@ -108,19 +109,22 @@ async fn create_new_account(user_email: Option<GithubEmail>, user_info: Option<G
         return Ok(CommandResult {
             spinner,
             symbol: "✅".to_owned(),
-            msg: "You are logged in!".to_owned(),
-        })
+            msg: "Please accept to link your GitHub account.".to_owned(),
+        });
     }
 
     if let (Some(email), Some(info)) = (user_email, user_info) {
         let params = SignupGithubParams {
             user: SignupUserGithub {
                 email: email.email,
-                authorizations_attributes: vec![Provider { uid: info.id.to_string(), provider: 0 }],
-            } 
+                authorizations_attributes: vec![Provider {
+                    uid: info.id.to_string(),
+                    provider: 0,
+                }],
+            },
         };
 
-        return do_signup(&params).await
+        return do_signup(&params).await;
     }
 
     Err(anyhow!("Shouldn't be here."))
