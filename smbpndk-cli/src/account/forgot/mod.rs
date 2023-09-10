@@ -56,6 +56,18 @@ pub async fn process_forgot() -> Result<CommandResult> {
     }
 }
 
+#[derive(Debug, Serialize)]
+pub struct Param {
+    pub(crate) user: UserUpdatePassword,
+}
+
+#[derive(Debug, Serialize)]
+pub struct UserUpdatePassword {
+    pub(crate) reset_password_token: String,
+    pub(crate) password: String,
+    pub(crate) password_confirmation: String,
+}
+
 async fn input_code() -> Result<CommandResult> {
     let security_code = Input::<String>::with_theme(&ColorfulTheme::default())
         .with_prompt("Code")
@@ -82,20 +94,9 @@ async fn input_code() -> Result<CommandResult> {
         .unwrap();
     let password_confirmation = String::from(&new_password);
 
-    #[derive(Debug, Serialize)]
-    struct Param {
-        user: User,
-    }
-
-    #[derive(Debug, Serialize)]
-    struct User {
-        reset_password_token: String,
-        password: String,
-        password_confirmation: String,
-    }
-
+    // Should reuse this somehow
     let params = Param {
-        user: User {
+        user: UserUpdatePassword {
             reset_password_token: security_code,
             password: new_password,
             password_confirmation,

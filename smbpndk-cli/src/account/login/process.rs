@@ -3,7 +3,7 @@ use crate::account::{
     model::{Data, Status, User},
     signup::{
         do_signup, GithubEmail, Provider, SignupGithubParams, SignupMethod, SignupUserGithub,
-    },
+    }, forgot::{Param, UserUpdatePassword},
 };
 use anyhow::{anyhow, Result};
 use console::{style, Term};
@@ -11,6 +11,7 @@ use dialoguer::{theme::ColorfulTheme, Confirm, Input, Password, Select};
 use log::debug;
 use reqwest::{Client, Response, StatusCode};
 use serde::{Deserialize, Serialize};
+use serde_json::json;
 use smbpndk_model::CommandResult;
 use smbpndk_utils::email_validation;
 use spinners::Spinner;
@@ -387,12 +388,19 @@ async fn input_reset_password_token() -> Result<CommandResult> {
         style("Resetting password...").green().bold().to_string(),
     );
 
+    let password_confirmation = password.clone();
+
+    let params = Param {
+        user: UserUpdatePassword {
+            reset_password_token: token,
+            password,
+            password_confirmation,
+        },
+    };
+
     let response = Client::new()
         .put(build_smb_reset_password_url())
-        .body(format!(
-            "reset_password_token={}&password={}",
-            token, password
-        ))
+        .json(&params)
         .header("Accept", "application/json")
         .header("Content-Type", "application/x-www-form-urlencoded")
         .send()
