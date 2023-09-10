@@ -1327,6 +1327,7 @@ dependencies = [
  "serde_json",
  "smbpndk-model",
  "thiserror",
+ "url-builder",
 ]
 
 [[package]]

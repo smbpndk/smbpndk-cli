@@ -1,6 +1,6 @@
 use crate::account::{
     forgot::{Param, UserUpdatePassword},
-    lib::{authorize_github, smb_base_url_builder, ErrorCode, GithubInfo, SmbAuthorization},
+    lib::{authorize_github, ErrorCode, GithubInfo, SmbAuthorization},
     model::{Data, Status, User},
     signup::{
         do_signup, GithubEmail, Provider, SignupGithubParams, SignupMethod, SignupUserGithub,
@@ -12,8 +12,9 @@ use dialoguer::{theme::ColorfulTheme, Confirm, Input, Password, Select};
 use log::debug;
 use reqwest::{Client, Response, StatusCode};
 use serde::{Deserialize, Serialize};
-use serde_json::json;
+
 use smbpndk_model::CommandResult;
+use smbpndk_networking::smb_base_url_builder;
 use smbpndk_utils::email_validation;
 use spinners::Spinner;
 use std::{

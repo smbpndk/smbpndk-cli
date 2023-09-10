@@ -1,11 +1,12 @@
 use anyhow::{anyhow, Result};
 use console::style;
-use log::{debug, info};
+use log::debug;
 use regex::Regex;
 use reqwest::{Client, StatusCode};
 use serde::{Deserialize, Serialize};
 
 use serde_repr::Deserialize_repr;
+use smbpndk_networking::smb_base_url_builder;
 use spinners::Spinner;
 use std::{
     env,
@@ -215,20 +216,6 @@ fn build_github_oauth_url() -> String {
         .add_param("scope", "user")
         .add_param("state", "smbpndk");
     url_builder.build()
-}
-
-pub fn smb_base_url_builder() -> URLBuilder {
-    let client_id = env::var("SMB_CLIENT_ID").expect("Please set SMB_CLIENT_ID");
-    let client_secret = env::var("SMB_CLIENT_SECRET").expect("Please set SMB_CLIENT_SECRET");
-    let api_host = env::var("SMB_API_HOST").expect("Please set SMB_API_HOST");
-    let api_protocol = env::var("SMB_API_PROTOCOL").expect("Please set SMB_API_PROTOCOL");
-    let mut url_builder = URLBuilder::new();
-    url_builder
-        .set_protocol(&api_protocol)
-        .set_host(&api_host)
-        .add_param("client_id", &client_id)
-        .add_param("client_secret", &client_secret);
-    url_builder
 }
 
 fn github_base_url_builder() -> URLBuilder {
