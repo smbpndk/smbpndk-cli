@@ -1,5 +1,6 @@
 pub mod cli;
 pub mod forgot;
+pub mod lib;
 pub mod login;
 pub mod model;
 pub mod signup;
