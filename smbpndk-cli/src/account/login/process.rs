@@ -1,9 +1,10 @@
 use crate::account::{
+    forgot::{Param, UserUpdatePassword},
     lib::{authorize_github, smb_base_url_builder, ErrorCode, GithubInfo, SmbAuthorization},
     model::{Data, Status, User},
     signup::{
         do_signup, GithubEmail, Provider, SignupGithubParams, SignupMethod, SignupUserGithub,
-    }, forgot::{Param, UserUpdatePassword},
+    },
 };
 use anyhow::{anyhow, Result};
 use console::{style, Term};
