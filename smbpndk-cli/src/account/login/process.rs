@@ -9,7 +9,7 @@ use anyhow::{anyhow, Result};
 use console::{style, Term};
 use dialoguer::{theme::ColorfulTheme, Confirm, Input, Password, Select};
 use log::debug;
-use reqwest::{Client, StatusCode, Response};
+use reqwest::{Client, Response, StatusCode};
 use serde::{Deserialize, Serialize};
 use smbpndk_model::CommandResult;
 use smbpndk_utils::email_validation;
@@ -358,7 +358,10 @@ async fn resend_reset_password_instruction(user: User) -> Result<CommandResult> 
 
     match response.status() {
         StatusCode::OK => {
-            spinner.stop_and_persist("✅", "Reset password instruction sent! Please check your email.".to_owned());
+            spinner.stop_and_persist(
+                "✅",
+                "Reset password instruction sent! Please check your email.".to_owned(),
+            );
             input_reset_password_token().await
         }
         _ => {
@@ -381,10 +384,7 @@ async fn input_reset_password_token() -> Result<CommandResult> {
 
     let spinner = Spinner::new(
         spinners::Spinners::SimpleDotsScrolling,
-        style("Resetting password...")
-            .green()
-            .bold()
-            .to_string(),
+        style("Resetting password...").green().bold().to_string(),
     );
 
     let response = Client::new()
