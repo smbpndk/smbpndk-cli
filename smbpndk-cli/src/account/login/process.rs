@@ -9,7 +9,7 @@ use anyhow::{anyhow, Result};
 use console::{style, Term};
 use dialoguer::{theme::ColorfulTheme, Confirm, Input, Password, Select};
 use log::debug;
-use reqwest::{Client, StatusCode};
+use reqwest::{Client, StatusCode, Response};
 use serde::{Deserialize, Serialize};
 use smbpndk_model::CommandResult;
 use smbpndk_utils::email_validation;
@@ -86,7 +86,7 @@ async fn process_authorization(auth: SmbAuthorization) -> Result<CommandResult> 
 
     // Logged in with GitHub
     if let Some(user) = auth.user {
-        print!("You are logged in with GitHub as {}.", user);
+        println!("You are logged in with GitHub as {}.", user);
         let spinner = Spinner::new(
             spinners::Spinners::SimpleDotsScrolling,
             style("Logging you in...").green().bold().to_string(),
@@ -229,40 +229,8 @@ async fn do_process_login(args: LoginArgs) -> Result<CommandResult> {
 
     match response.status() {
         StatusCode::OK => {
-            let headers = response.headers();
-            match headers.get("Authorization") {
-                Some(token) => {
-                    debug!("{}", token.to_str()?);
-                    match home::home_dir() {
-                        Some(path) => {
-                            debug!("{}", path.to_str().unwrap());
-                            create_dir_all(path.join(".smb"))?;
-                            let mut file = OpenOptions::new()
-                                .create(true)
-                                .write(true)
-                                .open([path.to_str().unwrap(), "/.smb/token"].join(""))?;
-                            file.write_all(token.to_str()?.as_bytes())?;
-
-                            Ok(CommandResult {
-                                spinner: Spinner::new(
-                                    spinners::Spinners::SimpleDotsScrolling,
-                                    style("Logging you in...").green().bold().to_string(),
-                                ),
-                                symbol: "✅".to_owned(),
-                                msg: "You are logged in!".to_owned(),
-                            })
-                        }
-                        None => {
-                            let error = anyhow!("Failed to get home directory.");
-                            return Err(error);
-                        }
-                    }
-                }
-                None => {
-                    let error = anyhow!("Failed to get token. Probably a backend issue.");
-                    return Err(error);
-                }
-            }
+            // Login successful
+            save_token(response).await
         }
         StatusCode::NOT_FOUND => {
             // Account not found and we show signup option
@@ -283,6 +251,43 @@ async fn do_process_login(args: LoginArgs) -> Result<CommandResult> {
         }
         _ => {
             let error = anyhow!("Login failed. Check your username and password.");
+            return Err(error);
+        }
+    }
+}
+
+async fn save_token(response: Response) -> Result<CommandResult> {
+    let headers = response.headers();
+    match headers.get("Authorization") {
+        Some(token) => {
+            debug!("{}", token.to_str()?);
+            match home::home_dir() {
+                Some(path) => {
+                    debug!("{}", path.to_str().unwrap());
+                    create_dir_all(path.join(".smb"))?;
+                    let mut file = OpenOptions::new()
+                        .create(true)
+                        .write(true)
+                        .open([path.to_str().unwrap(), "/.smb/token"].join(""))?;
+                    file.write_all(token.to_str()?.as_bytes())?;
+
+                    Ok(CommandResult {
+                        spinner: Spinner::new(
+                            spinners::Spinners::SimpleDotsScrolling,
+                            style("Logging you in...").green().bold().to_string(),
+                        ),
+                        symbol: "✅".to_owned(),
+                        msg: "You are logged in!".to_owned(),
+                    })
+                }
+                None => {
+                    let error = anyhow!("Failed to get home directory.");
+                    return Err(error);
+                }
+            }
+        }
+        None => {
+            let error = anyhow!("Failed to get token. Probably a backend issue.");
             return Err(error);
         }
     }
@@ -336,7 +341,7 @@ async fn send_reset_password(user: Option<User>) -> Result<CommandResult> {
 }
 
 async fn resend_reset_password_instruction(user: User) -> Result<CommandResult> {
-    let spinner = Spinner::new(
+    let mut spinner = Spinner::new(
         spinners::Spinners::SimpleDotsScrolling,
         style("Sending reset password instruction...")
             .green()
@@ -352,13 +357,55 @@ async fn resend_reset_password_instruction(user: User) -> Result<CommandResult> 
         .await?;
 
     match response.status() {
-        reqwest::StatusCode::OK => Ok(CommandResult {
-            spinner,
-            symbol: "✅".to_owned(),
-            msg: "Reset password instruction sent!".to_owned(),
-        }),
+        StatusCode::OK => {
+            spinner.stop_and_persist("✅", "Reset password instruction sent! Please check your email.".to_owned());
+            input_reset_password_token().await
+        }
         _ => {
             let error = anyhow!("Failed to send reset password instruction.");
+            Err(error)
+        }
+    }
+}
+
+async fn input_reset_password_token() -> Result<CommandResult> {
+    let token = Input::<String>::with_theme(&ColorfulTheme::default())
+        .with_prompt("Input reset password token")
+        .interact()
+        .unwrap();
+    let password = Password::with_theme(&ColorfulTheme::default())
+        .with_prompt("New password.")
+        .with_confirmation("Repeat password.", "Error: the passwords don't match.")
+        .interact()
+        .unwrap();
+
+    let spinner = Spinner::new(
+        spinners::Spinners::SimpleDotsScrolling,
+        style("Resetting password...")
+            .green()
+            .bold()
+            .to_string(),
+    );
+
+    let response = Client::new()
+        .put(build_smb_reset_password_url())
+        .body(format!(
+            "reset_password_token={}&password={}",
+            token, password
+        ))
+        .header("Accept", "application/json")
+        .header("Content-Type", "application/x-www-form-urlencoded")
+        .send()
+        .await?;
+
+    match response.status() {
+        StatusCode::OK => Ok(CommandResult {
+            spinner,
+            symbol: "✅".to_owned(),
+            msg: "Password reset!".to_owned(),
+        }),
+        _ => {
+            let error = anyhow!("Failed to reset password.");
             Err(error)
         }
     }
@@ -379,6 +426,12 @@ fn build_smb_resend_email_verification_url() -> String {
 fn build_smb_resend_reset_password_instructions_url() -> String {
     let mut url_builder = smb_base_url_builder();
     url_builder.add_route("v1/resend_reset_password_instructions");
+    url_builder.build()
+}
+
+fn build_smb_reset_password_url() -> String {
+    let mut url_builder = smb_base_url_builder();
+    url_builder.add_route("v1/users/password");
     url_builder.build()
 }
 
