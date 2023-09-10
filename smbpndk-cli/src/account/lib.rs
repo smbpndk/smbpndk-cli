@@ -2,16 +2,17 @@ use anyhow::{anyhow, Result};
 use console::style;
 use log::debug;
 use regex::Regex;
-use reqwest::{Client, StatusCode};
+use reqwest::{Client, StatusCode, Response};
 use serde::{Deserialize, Serialize};
 
 use serde_repr::Deserialize_repr;
+use smbpndk_model::CommandResult;
 use smbpndk_networking::smb_base_url_builder;
 use spinners::Spinner;
 use std::{
     env,
     fmt::{Display, Formatter},
-    fs,
+    fs::{self, create_dir_all, OpenOptions},
     io::{BufRead, BufReader, Write},
     net::{TcpListener, TcpStream},
     sync::mpsc::{self, Receiver, Sender},
@@ -177,6 +178,7 @@ pub async fn process_connect_github(code: String) -> Result<SmbAuthorization> {
         StatusCode::OK => {
             // Account authorized and token received
             spinner.stop_and_persist("✅", "You're logged in with your GitHub account!".into());
+            save_token(&response).await?;
             let result = response.json().await?;
             println!("Result: {:#?}", &result);
             Ok(result)
@@ -233,4 +235,43 @@ fn github_base_url_builder() -> URLBuilder {
         .add_param("client_id", &client_id)
         .add_param("redirect_uri", &redirect_url);
     url_builder
+}
+
+
+pub async fn save_token(response: &Response) -> Result<CommandResult> {
+    let headers = response.headers();
+    println!("Headers: {:#?}", &headers);
+    match headers.get("Authorization") {
+        Some(token) => {
+            debug!("{}", token.to_str()?);
+            match home::home_dir() {
+                Some(path) => {
+                    debug!("{}", path.to_str().unwrap());
+                    create_dir_all(path.join(".smb"))?;
+                    let mut file = OpenOptions::new()
+                        .create(true)
+                        .write(true)
+                        .open([path.to_str().unwrap(), "/.smb/token"].join(""))?;
+                    file.write_all(token.to_str()?.as_bytes())?;
+
+                    Ok(CommandResult {
+                        spinner: Spinner::new(
+                            spinners::Spinners::SimpleDotsScrolling,
+                            style("Logging you in...").green().bold().to_string(),
+                        ),
+                        symbol: "✅".to_owned(),
+                        msg: "You are logged in!".to_owned(),
+                    })
+                }
+                None => {
+                    let error = anyhow!("Failed to get home directory.");
+                    return Err(error);
+                }
+            }
+        }
+        None => {
+            let error = anyhow!("Failed to get token. Probably a backend issue.");
+            return Err(error);
+        }
+    }
 }

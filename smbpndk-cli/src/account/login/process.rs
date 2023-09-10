@@ -1,6 +1,6 @@
 use crate::account::{
     forgot::{Param, UserUpdatePassword},
-    lib::{authorize_github, ErrorCode, GithubInfo, SmbAuthorization},
+    lib::{authorize_github, ErrorCode, GithubInfo, SmbAuthorization, save_token},
     model::{Data, Status, User},
     signup::{
         do_signup, GithubEmail, Provider, SignupGithubParams, SignupMethod, SignupUserGithub,
@@ -10,17 +10,14 @@ use anyhow::{anyhow, Result};
 use console::{style, Term};
 use dialoguer::{theme::ColorfulTheme, Confirm, Input, Password, Select};
 use log::debug;
-use reqwest::{Client, Response, StatusCode};
+use reqwest::{Client, StatusCode};
 use serde::{Deserialize, Serialize};
 
 use smbpndk_model::CommandResult;
 use smbpndk_networking::smb_base_url_builder;
 use smbpndk_utils::email_validation;
 use spinners::Spinner;
-use std::{
-    fs::{self, create_dir_all, OpenOptions},
-    io::Write,
-};
+use std::fs::{self};
 
 pub struct LoginArgs {
     pub username: String,
@@ -233,7 +230,7 @@ async fn do_process_login(args: LoginArgs) -> Result<CommandResult> {
     match response.status() {
         StatusCode::OK => {
             // Login successful
-            save_token(response).await
+            save_token(&response).await
         }
         StatusCode::NOT_FOUND => {
             // Account not found and we show signup option
@@ -254,43 +251,6 @@ async fn do_process_login(args: LoginArgs) -> Result<CommandResult> {
         }
         _ => {
             let error = anyhow!("Login failed. Check your username and password.");
-            return Err(error);
-        }
-    }
-}
-
-async fn save_token(response: Response) -> Result<CommandResult> {
-    let headers = response.headers();
-    match headers.get("Authorization") {
-        Some(token) => {
-            debug!("{}", token.to_str()?);
-            match home::home_dir() {
-                Some(path) => {
-                    debug!("{}", path.to_str().unwrap());
-                    create_dir_all(path.join(".smb"))?;
-                    let mut file = OpenOptions::new()
-                        .create(true)
-                        .write(true)
-                        .open([path.to_str().unwrap(), "/.smb/token"].join(""))?;
-                    file.write_all(token.to_str()?.as_bytes())?;
-
-                    Ok(CommandResult {
-                        spinner: Spinner::new(
-                            spinners::Spinners::SimpleDotsScrolling,
-                            style("Logging you in...").green().bold().to_string(),
-                        ),
-                        symbol: "✅".to_owned(),
-                        msg: "You are logged in!".to_owned(),
-                    })
-                }
-                None => {
-                    let error = anyhow!("Failed to get home directory.");
-                    return Err(error);
-                }
-            }
-        }
-        None => {
-            let error = anyhow!("Failed to get token. Probably a backend issue.");
             return Err(error);
         }
     }
