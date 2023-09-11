@@ -1,19 +1,37 @@
 pub mod constants;
 
+use crate::constants::TOKEN_PATH_STR;
 use anyhow::{anyhow, Result};
 use dotenvy_macro::dotenv;
 use log::debug;
+use std::path::PathBuf;
 use url_builder::URLBuilder;
 
-pub async fn get_token() -> Result<String> {
-    if let Some(mut path) = dirs::home_dir() {
-        path.push(".smb/token");
+pub async fn get_smb_token() -> Result<String> {
+    if let Some(path) = smb_token_file_path() {
         std::fs::read_to_string(path).map_err(|e| {
             debug!("Error while reading token: {}", &e);
             anyhow!("Error while reading token. Are you logged in?")
         })
     } else {
         Err(anyhow!("Failed to get home directory."))
+    }
+}
+
+pub fn smb_token_file_path() -> Option<PathBuf> {
+    match home::home_dir() {
+        Some(path) => {
+            debug!("Home directory: {}.", path.to_str().unwrap());
+            let token_path = path.join(TOKEN_PATH_STR);
+            if token_path.exists() && token_path.is_file() {
+                return Some(token_path);
+            }
+            None
+        }
+        None => {
+            debug!("Failed to get home directory.");
+            None
+        }
     }
 }
 

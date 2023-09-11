@@ -1,12 +1,11 @@
+use super::{model::User, signup::GithubEmail};
 use anyhow::{anyhow, Result};
 use console::style;
 use log::debug;
 use regex::Regex;
 use reqwest::{Client, Response, StatusCode};
 use serde::{Deserialize, Serialize};
-
 use serde_repr::Deserialize_repr;
-use smbpndk_model::CommandResult;
 use smbpndk_networking::smb_base_url_builder;
 use spinners::Spinner;
 use std::{
@@ -18,8 +17,6 @@ use std::{
     sync::mpsc::{self, Receiver, Sender},
 };
 use url_builder::URLBuilder;
-
-use super::{model::User, signup::GithubEmail};
 
 // This is smb authorization model.
 #[derive(Debug, Serialize, Deserialize)]
@@ -173,33 +170,33 @@ pub async fn process_connect_github(code: String) -> Result<SmbAuthorization> {
             .bold()
             .to_string(),
     );
-    println!("Response: {:#?}", &response);
+    // println!("Response: {:#?}", &response);
     match response.status() {
         StatusCode::OK => {
             // Account authorized and token received
-            spinner.stop_and_persist("✅", "You're logged in with your GitHub account!".into());
+            spinner.stop_and_persist("✅", "You are logged in with your GitHub account!".into());
             save_token(&response).await?;
             let result = response.json().await?;
-            println!("Result: {:#?}", &result);
+            // println!("Result: {:#?}", &result);
             Ok(result)
         }
         StatusCode::NOT_FOUND => {
             // Account not found and we show signup option
             spinner.stop_and_persist("🥲", "Account not found. Please signup!".into());
             let result = response.json().await?;
-            println!("Result: {:#?}", &result);
+            // println!("Result: {:#?}", &result);
             Ok(result)
         }
         StatusCode::UNPROCESSABLE_ENTITY => {
             // Account found but email not verified
             spinner.stop_and_persist("🥹", "Unverified email!".into());
             let result = response.json().await?;
-            println!("Result: {:#?}", &result);
+            // println!("Result: {:#?}", &result);
             Ok(result)
         }
         _ => {
             // Other errors
-            let error = anyhow!("Error while authorizing token.");
+            let error = anyhow!("Error while authorizing with GitHub.");
             Err(error)
         }
     }
@@ -237,9 +234,9 @@ fn github_base_url_builder() -> URLBuilder {
     url_builder
 }
 
-pub async fn save_token(response: &Response) -> Result<CommandResult> {
+pub async fn save_token(response: &Response) -> Result<()> {
     let headers = response.headers();
-    println!("Headers: {:#?}", &headers);
+    // println!("Headers: {:#?}", &headers);
     match headers.get("Authorization") {
         Some(token) => {
             debug!("{}", token.to_str()?);
@@ -252,25 +249,11 @@ pub async fn save_token(response: &Response) -> Result<CommandResult> {
                         .write(true)
                         .open([path.to_str().unwrap(), "/.smb/token"].join(""))?;
                     file.write_all(token.to_str()?.as_bytes())?;
-
-                    Ok(CommandResult {
-                        spinner: Spinner::new(
-                            spinners::Spinners::SimpleDotsScrolling,
-                            style("Logging you in...").green().bold().to_string(),
-                        ),
-                        symbol: "✅".to_owned(),
-                        msg: "You are logged in!".to_owned(),
-                    })
+                    Ok(())
                 }
-                None => {
-                    let error = anyhow!("Failed to get home directory.");
-                    return Err(error);
-                }
+                None => Err(anyhow!("Failed to get home directory.")),
             }
         }
-        None => {
-            let error = anyhow!("Failed to get token. Probably a backend issue.");
-            return Err(error);
-        }
+        None => Err(anyhow!("Failed to get token. Probably a backend issue.")),
     }
 }

@@ -5,11 +5,11 @@ use anyhow::{anyhow, Result};
 use log::debug;
 use reqwest::Client;
 use smbpndk_model::{AuthApp, AuthAppCreate};
-use smbpndk_networking::{constants::BASE_URL, get_token};
+use smbpndk_networking::{constants::BASE_URL, get_smb_token};
 
 async fn get_auth_apps() -> Result<Vec<AuthApp>> {
     // Get current token
-    let token = get_token().await?;
+    let token = get_smb_token().await?;
 
     let response = Client::new()
         .get([BASE_URL, "v1/auth_apps"].join(""))
@@ -28,7 +28,7 @@ async fn get_auth_apps() -> Result<Vec<AuthApp>> {
 
 async fn get_auth_app(id: &str) -> Result<AuthApp> {
     // Get current token
-    let token = get_token().await?;
+    let token = get_smb_token().await?;
 
     let response = Client::new()
         .get([BASE_URL, "v1/auth_apps/", id].join(""))
@@ -50,7 +50,7 @@ async fn get_auth_app(id: &str) -> Result<AuthApp> {
 
 async fn delete_auth_app(id: String) -> Result<()> {
     // Get current token
-    let token = get_token().await?;
+    let token = get_smb_token().await?;
 
     let response = Client::new()
         .delete([BASE_URL, "v1/auth_apps/", &id].join(""))
@@ -69,7 +69,7 @@ async fn delete_auth_app(id: String) -> Result<()> {
 
 async fn create_auth_app(auth_app: AuthAppCreate) -> Result<AuthApp> {
     // Get current token
-    let token = get_token().await?;
+    let token = get_smb_token().await?;
 
     let response = Client::new()
         .post([BASE_URL, "v1/auth_apps"].join(""))

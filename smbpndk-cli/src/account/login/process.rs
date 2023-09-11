@@ -13,7 +13,7 @@ use log::debug;
 use reqwest::{Client, StatusCode};
 use serde::{Deserialize, Serialize};
 use smbpndk_model::CommandResult;
-use smbpndk_networking::smb_base_url_builder;
+use smbpndk_networking::{get_smb_token, smb_base_url_builder, smb_token_file_path};
 use smbpndk_utils::email_validation;
 use spinners::Spinner;
 use std::fs::{self};
@@ -41,6 +41,18 @@ struct LoginResult {
 }
 
 pub async fn process_login() -> Result<CommandResult> {
+    // Check if token file exists
+    if smb_token_file_path().is_some() {
+        return Ok(CommandResult {
+            spinner: Spinner::new(
+                spinners::Spinners::SimpleDotsScrolling,
+                style("Loading...").green().bold().to_string(),
+            ),
+            symbol: "✅".to_owned(),
+            msg: "You are already logged in.".to_owned(),
+        });
+    }
+
     let signup_methods = vec![SignupMethod::Email, SignupMethod::GitHub];
     let selection = Select::with_theme(&ColorfulTheme::default())
         .items(&signup_methods)
@@ -54,6 +66,59 @@ pub async fn process_login() -> Result<CommandResult> {
         SignupMethod::GitHub => login_with_github().await,
     }
 }
+
+pub async fn process_logout() -> Result<CommandResult> {
+    // Logout if user confirms
+    if let Some(token_path) = smb_token_file_path() {
+        let confirm = Confirm::with_theme(&ColorfulTheme::default())
+            .with_prompt("Do you want to logout? y/n")
+            .interact()
+            .unwrap();
+        if !confirm {
+            return Ok(CommandResult {
+                spinner: Spinner::new(
+                    spinners::Spinners::SimpleDotsScrolling,
+                    style("Cancel operation.").green().bold().to_string(),
+                ),
+                symbol: "✅".to_owned(),
+                msg: "Doing nothing.".to_owned(),
+            });
+        }
+
+        let mut spinner = Spinner::new(
+            spinners::Spinners::SimpleDotsScrolling,
+            style("Logging you out...").green().bold().to_string(),
+        );
+
+        // Call backend
+        match do_process_logout().await {
+            Ok(_) => {
+                spinner.stop_and_persist("✅", "Done.".to_owned());
+                fs::remove_file(token_path)?;
+                Ok(CommandResult {
+                    spinner: Spinner::new(
+                        spinners::Spinners::SimpleDotsScrolling,
+                        style("Loading...").green().bold().to_string(),
+                    ),
+                    symbol: "✅".to_owned(),
+                    msg: "You are now logged out!".to_owned(),
+                })
+            }
+            Err(e) => Err(anyhow!("{e}")),
+        }
+    } else {
+        Ok(CommandResult {
+            spinner: Spinner::new(
+                spinners::Spinners::SimpleDotsScrolling,
+                style("Loading...").green().bold().to_string(),
+            ),
+            symbol: "😏".to_owned(),
+            msg: "You are not logged in.".to_owned(),
+        })
+    }
+}
+
+// Private functions
 
 async fn login_with_github() -> Result<CommandResult> {
     match authorize_github().await {
@@ -83,18 +148,18 @@ async fn process_authorization(auth: SmbAuthorization) -> Result<CommandResult> 
         }
     }
 
-    // Logged in with GitHub
+    // Logged in with GitHub!
+    // Token handling is in the lib.rs account module.
     if let Some(user) = auth.user {
-        println!("You are logged in with GitHub as {}.", user);
         let spinner = Spinner::new(
             spinners::Spinners::SimpleDotsScrolling,
             style("Logging you in...").green().bold().to_string(),
         );
-        // We're logged in with GitHub, but not with SMB.
+        // We're logged in with GitHub.
         return Ok(CommandResult {
             spinner,
             symbol: "✅".to_owned(),
-            msg: "You are logged in!".to_owned(),
+            msg: format!("You are logged in with GitHub as {}.", user.email),
         });
     }
 
@@ -229,7 +294,15 @@ async fn do_process_login(args: LoginArgs) -> Result<CommandResult> {
     match response.status() {
         StatusCode::OK => {
             // Login successful
-            save_token(&response).await
+            save_token(&response).await?;
+            Ok(CommandResult {
+                spinner: Spinner::new(
+                    spinners::Spinners::SimpleDotsScrolling,
+                    style("Loading...").green().bold().to_string(),
+                ),
+                symbol: "✅".to_owned(),
+                msg: "You are now logged in!".to_owned(),
+            })
         }
         StatusCode::NOT_FOUND => {
             // Account not found and we show signup option
@@ -245,13 +318,10 @@ async fn do_process_login(args: LoginArgs) -> Result<CommandResult> {
         StatusCode::UNPROCESSABLE_ENTITY => {
             // Account found but email not verified / password not set
             let result: SmbAuthorization = response.json().await?;
-            println!("Result: {:#?}", &result);
-            return verify_or_set_password(result).await;
+            // println!("Result: {:#?}", &result);
+            verify_or_set_password(result).await
         }
-        _ => {
-            let error = anyhow!("Login failed. Check your username and password.");
-            return Err(error);
-        }
+        _ => Err(anyhow!("Login failed. Check your username and password.")),
     }
 }
 
@@ -260,18 +330,12 @@ async fn verify_or_set_password(result: SmbAuthorization) -> Result<CommandResul
         Some(error_code) => {
             debug!("{}", error_code);
             match error_code {
-                ErrorCode::EmailUnverified => return send_email_verification(result.user).await,
-                ErrorCode::PasswordNotSet => return send_reset_password(result.user).await,
-                _ => {
-                    let error = anyhow!("Shouldn't be here.");
-                    return Err(error);
-                }
+                ErrorCode::EmailUnverified => send_email_verification(result.user).await,
+                ErrorCode::PasswordNotSet => send_reset_password(result.user).await,
+                _ => Err(anyhow!("Shouldn't be here.")),
             }
         }
-        None => {
-            let error = anyhow!("Shouldn't be here.");
-            return Err(error);
-        }
+        None => Err(anyhow!("Shouldn't be here.")),
     }
 }
 
@@ -380,42 +444,32 @@ async fn input_reset_password_token() -> Result<CommandResult> {
     }
 }
 
-pub async fn process_logout() -> Result<CommandResult> {
-    let spinner = Spinner::new(
-        spinners::Spinners::SimpleDotsScrolling,
-        style("Logging you out...").green().bold().to_string(),
-    );
-    match home::home_dir() {
-        Some(path) => {
-            debug!("Home directory: {}.", path.to_str().unwrap());
+async fn do_process_logout() -> Result<()> {
+    let token = get_smb_token().await?;
 
-            // Check if token file exists
-            if !path.join(".smb/token").exists() {
-                return Ok(CommandResult {
-                    spinner,
-                    symbol: "✅".to_owned(),
-                    msg: "You are not logged in.".to_owned(),
-                });
-            }
+    let response = Client::new()
+        .delete(build_smb_logout_url())
+        .header("Authorization", token)
+        .header("Accept", "application/json")
+        .header("Content-Type", "application/x-www-form-urlencoded")
+        .send()
+        .await?;
 
-            // Remove token file
-            fs::remove_file(path.join(".smb/token"))?;
-
-            Ok(CommandResult {
-                spinner,
-                symbol: "✅".to_owned(),
-                msg: "You are now logged out!".to_owned(),
-            })
-        }
-        None => Err(anyhow!("Failed to get home directory. Are you logged in?")),
+    match response.status() {
+        StatusCode::OK => Ok(()),
+        _ => Err(anyhow!("Failed to logout.")),
     }
 }
-
-// Private functions
 
 fn build_smb_login_url() -> String {
     let mut url_builder = smb_base_url_builder();
     url_builder.add_route("v1/users/sign_in");
+    url_builder.build()
+}
+
+fn build_smb_logout_url() -> String {
+    let mut url_builder = smb_base_url_builder();
+    url_builder.add_route("v1/users/sign_out");
     url_builder.build()
 }
 
