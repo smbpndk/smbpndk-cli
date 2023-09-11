@@ -1,5 +1,4 @@
 use anyhow::{anyhow, Result};
-use app_oten::{self, handler::process_auth_app};
 use clap::Parser;
 use console::style;
 use dotenvy::dotenv;
@@ -102,6 +101,6 @@ async fn run() -> Result<CommandResult> {
     match cli.command {
         Commands::Account { command } => process_account(command).await,
         Commands::Project { command } => process_project(command).await,
-        Commands::Oten { command } => process_auth_app(command).await,
+        //Commands::Oten { command } => process_auth_app(command).await,
     }
 }
