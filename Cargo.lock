@@ -39,41 +39,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "224afbd727c3d6e4b90103ece64b8d1b67fbb1973b1046c2281eed3f3803f800"
 
 [[package]]
-name = "app-fun"
-version = "0.3.3"
-
-[[package]]
-name = "app-oten"
-version = "0.3.3"
-dependencies = [
- "anyhow",
- "async-trait",
- "clap",
- "console",
- "dialoguer",
- "dirs",
- "home",
- "log",
- "maybe-async",
- "reqwest",
- "serde",
- "serde_json",
- "smbpndk-model",
- "smbpndk-networking",
- "smbpndk-utils",
- "spinners",
- "thiserror",
-]
-
-[[package]]
-name = "app-pkt"
-version = "0.3.3"
-
-[[package]]
-name = "app-rdb"
-version = "0.3.3"
-
-[[package]]
 name = "async-trait"
 version = "0.1.66"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1265,10 +1230,6 @@ name = "smbpndk-cli"
 version = "0.3.3"
 dependencies = [
  "anyhow",
- "app-fun",
- "app-oten",
- "app-pkt",
- "app-rdb",
  "clap",
  "clap_mangen",
  "console",

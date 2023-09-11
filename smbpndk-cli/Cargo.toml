@@ -17,10 +17,6 @@ path = "src/main.rs"
 
 [dependencies]
 anyhow = "1.0.58"
-app-fun = { version = "0.3.0", path = "../app-fun" }
-app-oten = { version = "0.3.0", path = "../app-oten" }
-app-pkt = { version = "0.3.0", path = "../app-pkt" }
-app-rdb = { version = "0.3.0", path = "../app-rdb" }
 clap = { version = "4.1.6", features = ["derive"] }
 clap_mangen = "0.2.10"
 console = "0.15.0"
