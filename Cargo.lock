@@ -1227,7 +1227,7 @@ checksum = "a507befe795404456341dfab10cef66ead4c041f62b8b11bbb92bffe5d0953e0"
 
 [[package]]
 name = "smbpndk-cli"
-version = "0.3.3"
+version = "0.3.4"
 dependencies = [
  "anyhow",
  "clap",
@@ -1259,7 +1259,7 @@ dependencies = [
 
 [[package]]
 name = "smbpndk-model"
-version = "0.3.3"
+version = "0.3.4"
 dependencies = [
  "chrono",
  "serde",
@@ -1269,7 +1269,7 @@ dependencies = [
 
 [[package]]
 name = "smbpndk-networking"
-version = "0.3.3"
+version = "0.3.4"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -1289,7 +1289,7 @@ dependencies = [
 
 [[package]]
 name = "smbpndk-networking-project"
-version = "0.3.3"
+version = "0.3.4"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -1307,7 +1307,7 @@ dependencies = [
 
 [[package]]
 name = "smbpndk-utils"
-version = "0.3.3"
+version = "0.3.4"
 dependencies = [
  "anyhow",
  "dirs",
