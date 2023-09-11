@@ -4,6 +4,12 @@ name: CI
 
 on: push
 
+env:
+  SMB_CLIENT_ID: ${{ secrets.SMB_CLIENT_ID }}
+  SMB_CLIENT_SECRET: ${{ secrets.SMB_CLIENT_SECRET }}
+  SMB_API_HOST: ${{ secrets.SMB_API_HOST }}
+  SMB_API_PROTOCOL: ${{ secrets.SMB_API_PROTOCOL }}
+
 jobs:
   test_branch:
     runs-on: ubuntu-latest
