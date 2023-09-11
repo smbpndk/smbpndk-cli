@@ -10,7 +10,3 @@ members = [
     "smbpndk-networking-project",
     "smbpndk-utils"
 ]
-
-[workspace.metadata.precommit]
-fmt = "cargo fmt"
-sort = "cargo sort -w"
