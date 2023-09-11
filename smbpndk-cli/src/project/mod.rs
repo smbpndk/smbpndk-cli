@@ -192,7 +192,7 @@ pub async fn process_project(commands: Commands) -> Result<CommandResult> {
 
 fn show_projects(projects: Vec<Project>) {
     // println!("Projects: {projects:#?}");
-    if projects.len() == 0 {
+    if projects.is_empty() {
         return;
     }
     println!(
