@@ -1,9 +1,9 @@
 pub mod constants;
 
 use anyhow::{anyhow, Result};
+use dotenvy_macro::dotenv;
 use log::debug;
 use url_builder::URLBuilder;
-use dotenvy_macro::dotenv;
 
 pub async fn get_token() -> Result<String> {
     if let Some(mut path) = dirs::home_dir() {

@@ -73,7 +73,7 @@ pub async fn delete_project(id: String) -> Result<()> {
     let token = get_token().await.unwrap();
 
     let response = Client::new()
-        .delete(build_project_url())
+        .delete(build_delete_project_url(id))
         .header("Authorization", token)
         .send()
         .await?;
@@ -87,8 +87,17 @@ pub async fn delete_project(id: String) -> Result<()> {
     }
 }
 
+// Private functions
+
 fn build_project_url() -> String {
     let mut url_builder = smb_base_url_builder();
     url_builder.add_route("v1/projects");
+    url_builder.build()
+}
+
+fn build_delete_project_url(id: String) -> String {
+    let mut url_builder = smb_base_url_builder();
+    url_builder.add_route("v1/projects");
+    url_builder.add_route(id.as_str());
     url_builder.build()
 }

@@ -2,7 +2,7 @@ use anyhow::{anyhow, Result};
 use console::style;
 use log::debug;
 use regex::Regex;
-use reqwest::{Client, StatusCode, Response};
+use reqwest::{Client, Response, StatusCode};
 use serde::{Deserialize, Serialize};
 
 use serde_repr::Deserialize_repr;
@@ -236,7 +236,6 @@ fn github_base_url_builder() -> URLBuilder {
         .add_param("redirect_uri", &redirect_url);
     url_builder
 }
-
 
 pub async fn save_token(response: &Response) -> Result<CommandResult> {
     let headers = response.headers();

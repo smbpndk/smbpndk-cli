@@ -1,6 +1,6 @@
 use crate::account::{
     forgot::{Param, UserUpdatePassword},
-    lib::{authorize_github, ErrorCode, GithubInfo, SmbAuthorization, save_token},
+    lib::{authorize_github, save_token, ErrorCode, GithubInfo, SmbAuthorization},
     model::{Data, Status, User},
     signup::{
         do_signup, GithubEmail, Provider, SignupGithubParams, SignupMethod, SignupUserGithub,
