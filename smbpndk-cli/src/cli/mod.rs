@@ -25,7 +25,6 @@ pub enum Commands {
         #[clap(subcommand)]
         command: project::cli::Commands,
     },
-
     /*
     #[clap(about = "Manage your Oten authentication app. Add, delete, edit. Need authentication.")]
     Oten {
