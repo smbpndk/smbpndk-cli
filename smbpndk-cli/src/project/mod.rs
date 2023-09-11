@@ -5,7 +5,7 @@ use anyhow::{anyhow, Result};
 use console::style;
 use dialoguer::{theme::ColorfulTheme, Input};
 use log::debug;
-use smbpndk_model::{CommandResult, Config, ProjectCreate};
+use smbpndk_model::{CommandResult, Config, Project, ProjectCreate};
 use smbpndk_networking_project::{create_project, delete_project, get_all, get_project};
 use spinners::Spinner;
 use std::{fs::OpenOptions, io::Write};
@@ -22,9 +22,9 @@ pub async fn process_project(commands: Commands) -> Result<CommandResult> {
                 .interact()
                 .unwrap();
 
-            let spinner = Spinner::new(
+            let mut spinner = Spinner::new(
                 spinners::Spinners::SimpleDotsScrolling,
-                style("Creating project...").green().bold().to_string(),
+                style("Creating a project...").green().bold().to_string(),
             );
 
             match create_project(ProjectCreate {
@@ -33,11 +33,17 @@ pub async fn process_project(commands: Commands) -> Result<CommandResult> {
             })
             .await
             {
-                Ok(_) => Ok(CommandResult {
-                    spinner,
-                    symbol: "✅".to_owned(),
-                    msg: format!("Creating a project {project_name}."),
-                }),
+                Ok(_) => {
+                    spinner.stop_and_persist("✅", "Done.".to_owned());
+                    Ok(CommandResult {
+                        spinner: Spinner::new(
+                            spinners::Spinners::SimpleDotsScrolling,
+                            style("Loading...").green().bold().to_string(),
+                        ),
+                        symbol: "✅".to_owned(),
+                        msg: format!("{project_name} has been created."),
+                    })
+                }
                 Err(e) => {
                     println!("Error: {e:#?}");
                     Ok(CommandResult {
@@ -49,7 +55,7 @@ pub async fn process_project(commands: Commands) -> Result<CommandResult> {
             }
         }
         Commands::List {} => {
-            let spinner = Spinner::new(
+            let mut spinner = Spinner::new(
                 spinners::Spinners::SimpleDotsScrolling,
                 style("Loading...").green().bold().to_string(),
             );
@@ -57,24 +63,20 @@ pub async fn process_project(commands: Commands) -> Result<CommandResult> {
             // Get all
             match get_all().await {
                 Ok(projects) => {
-                    println!("Projects: {projects:#?}");
-                    println!(
-                        "{0: <5} | {1: <20} | {2: <10} | {3: <10}",
-                        "ID", "Name", "Created at", "Updated at"
-                    );
-                    for project in projects {
-                        println!(
-                            "{0: <5} | {1: <20} | {2: <30} | {3: <30}",
-                            project.id,
-                            project.name,
-                            project.created_at.date_naive(),
-                            project.updated_at.date_naive()
-                        );
-                    }
+                    spinner.stop_and_persist("✅", "Loaded.".to_owned());
+                    let msg = if projects.is_empty() {
+                        "No projects found.".to_owned()
+                    } else {
+                        "Showing all projects.".to_owned()
+                    };
+                    show_projects(projects);
                     Ok(CommandResult {
-                        spinner,
+                        spinner: Spinner::new(
+                            spinners::Spinners::SimpleDotsScrolling,
+                            style("Loading...").green().bold().to_string(),
+                        ),
                         symbol: "✅".to_owned(),
-                        msg: "Showing all projects.".to_owned(),
+                        msg,
                     })
                 }
                 Err(e) => {
@@ -88,42 +90,66 @@ pub async fn process_project(commands: Commands) -> Result<CommandResult> {
             }
         }
         Commands::Show { id } => {
-            let spinner = Spinner::new(
+            let mut spinner = Spinner::new(
                 spinners::Spinners::SimpleDotsScrolling,
                 style("Loading...").green().bold().to_string(),
             );
             // Get Detail
             match get_project(id).await {
-                Ok(_) => Ok(CommandResult {
-                    spinner,
-                    symbol: "✅".to_owned(),
-                    msg: "Showing all projects.".to_owned(),
-                }),
+                Ok(project) => {
+                    spinner.stop_and_persist("✅", "Loaded.".to_owned());
+                    let message = format!("Showing project {}.", &project.name);
+                    show_projects(vec![project]);
+                    Ok(CommandResult {
+                        spinner: Spinner::new(
+                            spinners::Spinners::SimpleDotsScrolling,
+                            style("Loading...").green().bold().to_string(),
+                        ),
+                        symbol: "✅".to_owned(),
+                        msg: message,
+                    })
+                }
                 Err(e) => {
                     println!("Error: {e:#?}");
                     Ok(CommandResult {
                         spinner,
                         symbol: "😩".to_owned(),
-                        msg: "Failed to get all projects.".to_owned(),
+                        msg: "Failed to get project.".to_owned(),
                     })
                 }
             }
         }
         Commands::Delete { id } => {
-            let spinner = Spinner::new(
+            let confirmation = Input::<String>::with_theme(&ColorfulTheme::default())
+                .with_prompt("Are you sure? (y/n)")
+                .interact()
+                .unwrap();
+
+            let mut spinner = Spinner::new(
                 spinners::Spinners::SimpleDotsScrolling,
                 style("Deleting project...").green().bold().to_string(),
             );
-            match delete_project(id).await {
-                Ok(_) => Ok(CommandResult {
+
+            if confirmation != "y" {
+                return Ok(CommandResult {
                     spinner,
                     symbol: "✅".to_owned(),
-                    msg: "Project deleted.".to_string(),
-                }),
-                Err(e) => {
-                    let error = anyhow!("Failed to delete project. {e}");
-                    Err(error)
+                    msg: "Cancelled.".to_string(),
+                });
+            }
+            match delete_project(id).await {
+                Ok(_) => {
+                    spinner.stop_and_persist("✅", "Done.".to_string());
+                    Ok(CommandResult {
+                        spinner: Spinner::new(
+                            spinners::Spinners::SimpleDotsScrolling,
+                            style("Loading...").green().bold().to_string(),
+                        ),
+                        symbol: "✅".to_owned(),
+                        msg: "Project has been deleted.".to_string(),
+                    })
                 }
+                Err(e) => Err(anyhow!("{e}")),
             }
         }
         Commands::Use { id } => {
@@ -160,5 +186,28 @@ pub async fn process_project(commands: Commands) -> Result<CommandResult> {
                 }
             }
         }
+    }
+}
+
+// Private functions
+
+fn show_projects(projects: Vec<Project>) {
+    // println!("Projects: {projects:#?}");
+    if projects.len() == 0 {
+        return;
+    }
+    println!(
+        "{0: <5} | {1: <20} | {2: <30} | {3: <20} | {4: <20}",
+        "ID", "Name", "Description", "Created at", "Updated at"
+    );
+    for project in projects {
+        println!(
+            "{0: <5} | {1: <20} | {2: <30} | {3: <20} | {4: <20}",
+            project.id,
+            project.name,
+            project.description,
+            project.created_at.date_naive(),
+            project.updated_at.date_naive(),
+        );
     }
 }

@@ -1,7 +1,6 @@
 use anyhow::{anyhow, Result};
 use log::debug;
 use reqwest::Client;
-
 use smbpndk_model::{Project, ProjectCreate};
 use smbpndk_networking::{get_token, smb_base_url_builder};
 
@@ -41,7 +40,7 @@ pub async fn create_project(project: ProjectCreate) -> Result<Project> {
     match response.status() {
         reqwest::StatusCode::CREATED => {
             let project: Project = response.json().await?;
-            println!("Project created: {project:#?}");
+            // println!("Project created: {project:#?}");
             Ok(project)
         }
         _ => Err(anyhow!("Failed to create a project.")),
@@ -53,7 +52,7 @@ pub async fn get_project(id: String) -> Result<Project> {
     let token = get_token().await.unwrap();
 
     let response = Client::new()
-        .get(build_project_url())
+        .get(build_project_url_with_id(id))
         .header("Authorization", token)
         .send()
         .await?;
@@ -73,7 +72,7 @@ pub async fn delete_project(id: String) -> Result<()> {
     let token = get_token().await.unwrap();
 
     let response = Client::new()
-        .delete(build_delete_project_url(id))
+        .delete(build_project_url_with_id(id))
         .header("Authorization", token)
         .send()
         .await?;
@@ -95,7 +94,7 @@ fn build_project_url() -> String {
     url_builder.build()
 }
 
-fn build_delete_project_url(id: String) -> String {
+fn build_project_url_with_id(id: String) -> String {
     let mut url_builder = smb_base_url_builder();
     url_builder.add_route("v1/projects");
     url_builder.add_route(id.as_str());
