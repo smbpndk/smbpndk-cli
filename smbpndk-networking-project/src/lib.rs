@@ -49,7 +49,7 @@ pub async fn create_project(project: ProjectCreate) -> Result<Project> {
 
 pub async fn get_project(id: String) -> Result<Project> {
     // Get current token
-    let token = get_token().await.unwrap();
+    let token = get_token().await?;
 
     let response = Client::new()
         .get(build_project_url_with_id(id))
@@ -69,7 +69,7 @@ pub async fn get_project(id: String) -> Result<Project> {
 
 pub async fn delete_project(id: String) -> Result<()> {
     // Get current token
-    let token = get_token().await.unwrap();
+    let token = get_token().await?;
 
     let response = Client::new()
         .delete(build_project_url_with_id(id))

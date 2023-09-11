@@ -110,12 +110,8 @@ pub async fn process_project(commands: Commands) -> Result<CommandResult> {
                     })
                 }
                 Err(e) => {
-                    println!("Error: {e:#?}");
-                    Ok(CommandResult {
-                        spinner,
-                        symbol: "😩".to_owned(),
-                        msg: "Failed to get project.".to_owned(),
-                    })
+                    spinner.stop_and_persist("😩", "Failed.".to_string());
+                    Err(anyhow!("{e}"))
                 }
             }
         }
@@ -149,7 +145,10 @@ pub async fn process_project(commands: Commands) -> Result<CommandResult> {
                         msg: "Project has been deleted.".to_string(),
                     })
                 }
-                Err(e) => Err(anyhow!("{e}")),
+                Err(e) => {
+                    spinner.stop_and_persist("😩", "Failed.".to_string());
+                    Err(anyhow!("{e}"))
+                }
             }
         }
         Commands::Use { id } => {

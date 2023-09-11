@@ -12,7 +12,6 @@ use dialoguer::{theme::ColorfulTheme, Confirm, Input, Password, Select};
 use log::debug;
 use reqwest::{Client, StatusCode};
 use serde::{Deserialize, Serialize};
-
 use smbpndk_model::CommandResult;
 use smbpndk_networking::smb_base_url_builder;
 use smbpndk_utils::email_validation;
@@ -381,6 +380,39 @@ async fn input_reset_password_token() -> Result<CommandResult> {
     }
 }
 
+pub async fn process_logout() -> Result<CommandResult> {
+    let spinner = Spinner::new(
+        spinners::Spinners::SimpleDotsScrolling,
+        style("Logging you out...").green().bold().to_string(),
+    );
+    match home::home_dir() {
+        Some(path) => {
+            debug!("Home directory: {}.", path.to_str().unwrap());
+
+            // Check if token file exists
+            if !path.join(".smb/token").exists() {
+                return Ok(CommandResult {
+                    spinner,
+                    symbol: "✅".to_owned(),
+                    msg: "You are not logged in.".to_owned(),
+                });
+            }
+
+            // Remove token file
+            fs::remove_file(path.join(".smb/token"))?;
+
+            Ok(CommandResult {
+                spinner,
+                symbol: "✅".to_owned(),
+                msg: "You are now logged out!".to_owned(),
+            })
+        }
+        None => Err(anyhow!("Failed to get home directory. Are you logged in?")),
+    }
+}
+
+// Private functions
+
 fn build_smb_login_url() -> String {
     let mut url_builder = smb_base_url_builder();
     url_builder.add_route("v1/users/sign_in");
@@ -403,27 +435,4 @@ fn build_smb_reset_password_url() -> String {
     let mut url_builder = smb_base_url_builder();
     url_builder.add_route("v1/users/password");
     url_builder.build()
-}
-
-pub async fn process_logout() -> Result<CommandResult> {
-    let spinner = Spinner::new(
-        spinners::Spinners::SimpleDotsScrolling,
-        style("Logging you out...").green().bold().to_string(),
-    );
-    match home::home_dir() {
-        Some(path) => {
-            debug!("{}", path.to_str().unwrap());
-            fs::remove_file([path.to_str().unwrap(), "/.smb/token"].join(""))?;
-
-            Ok(CommandResult {
-                spinner,
-                symbol: "✅".to_owned(),
-                msg: "You are logged out!".to_owned(),
-            })
-        }
-        None => {
-            let error = anyhow!("Failed to get home directory. Are you logged in?");
-            Err(error)
-        }
-    }
 }
