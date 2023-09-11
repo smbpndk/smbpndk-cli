@@ -13,7 +13,7 @@ use log::debug;
 use reqwest::{Client, StatusCode};
 use serde::{Deserialize, Serialize};
 use smbpndk_model::CommandResult;
-use smbpndk_networking::smb_base_url_builder;
+use smbpndk_networking::{smb_base_url_builder, smb_token_file_path};
 use smbpndk_utils::email_validation;
 use spinners::Spinner;
 use std::fs::{self};
@@ -41,6 +41,18 @@ struct LoginResult {
 }
 
 pub async fn process_login() -> Result<CommandResult> {
+    // Check if token file exists
+    if smb_token_file_path().is_some() {
+        return Ok(CommandResult {
+            spinner: Spinner::new(
+                spinners::Spinners::SimpleDotsScrolling,
+                style("Loading...").green().bold().to_string(),
+            ),
+            symbol: "✅".to_owned(),
+            msg: "You are already logged in.".to_owned(),
+        });
+    }
+
     let signup_methods = vec![SignupMethod::Email, SignupMethod::GitHub];
     let selection = Select::with_theme(&ColorfulTheme::default())
         .items(&signup_methods)
@@ -385,29 +397,20 @@ pub async fn process_logout() -> Result<CommandResult> {
         spinners::Spinners::SimpleDotsScrolling,
         style("Logging you out...").green().bold().to_string(),
     );
-    match home::home_dir() {
-        Some(path) => {
-            debug!("Home directory: {}.", path.to_str().unwrap());
-
-            // Check if token file exists
-            if !path.join(".smb/token").exists() {
-                return Ok(CommandResult {
-                    spinner,
-                    symbol: "✅".to_owned(),
-                    msg: "You are not logged in.".to_owned(),
-                });
-            }
-
-            // Remove token file
-            fs::remove_file(path.join(".smb/token"))?;
-
-            Ok(CommandResult {
-                spinner,
-                symbol: "✅".to_owned(),
-                msg: "You are now logged out!".to_owned(),
-            })
-        }
-        None => Err(anyhow!("Failed to get home directory. Are you logged in?")),
+    if let Some(token_path) = smb_token_file_path() {
+        // Call backend
+        fs::remove_file(token_path)?;
+        Ok(CommandResult {
+            spinner,
+            symbol: "✅".to_owned(),
+            msg: "You are now logged out!".to_owned(),
+        })
+    } else {
+        Ok(CommandResult {
+            spinner,
+            symbol: "😏".to_owned(),
+            msg: "You are not logged in.".to_owned(),
+        })
     }
 }
 

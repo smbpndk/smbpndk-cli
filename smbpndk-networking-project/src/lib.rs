@@ -2,11 +2,11 @@ use anyhow::{anyhow, Result};
 use log::debug;
 use reqwest::Client;
 use smbpndk_model::{Project, ProjectCreate};
-use smbpndk_networking::{get_token, smb_base_url_builder};
+use smbpndk_networking::{get_smb_token, smb_base_url_builder};
 
 pub async fn get_all() -> Result<Vec<Project>> {
     // Get current token
-    let token = get_token().await?;
+    let token = get_smb_token().await?;
 
     debug!("Current token: {}", token);
 
@@ -28,7 +28,7 @@ pub async fn get_all() -> Result<Vec<Project>> {
 
 pub async fn create_project(project: ProjectCreate) -> Result<Project> {
     // Get current token
-    let token = get_token().await?;
+    let token = get_smb_token().await?;
 
     let response = Client::new()
         .post(build_project_url())
@@ -49,7 +49,7 @@ pub async fn create_project(project: ProjectCreate) -> Result<Project> {
 
 pub async fn get_project(id: String) -> Result<Project> {
     // Get current token
-    let token = get_token().await?;
+    let token = get_smb_token().await?;
 
     let response = Client::new()
         .get(build_project_url_with_id(id))
@@ -69,7 +69,7 @@ pub async fn get_project(id: String) -> Result<Project> {
 
 pub async fn delete_project(id: String) -> Result<()> {
     // Get current token
-    let token = get_token().await?;
+    let token = get_smb_token().await?;
 
     let response = Client::new()
         .delete(build_project_url_with_id(id))
