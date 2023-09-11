@@ -1,6 +1,6 @@
 [package]
 name = "smbpndk-cli"
-version = "0.3.3"
+version = "0.3.6"
 edition = "2021"
 authors = ["Seto Elkahfi <hej@setoelkahfi.se>"]
 description = "Command line tool for creating and managing SmbPndk resources."
@@ -9,7 +9,7 @@ repository = "https://github.com/smbpndk/smbpndk-cli"
 documentation = "https://docs.smbpndk.com/cli"
 keywords = ["cli", "cloud", "web2", "web3", "smbpndk"]
 categories = ["command-line-utilities", "command-line-interface", "cryptography::cryptocurrencies", "development-tools", "wasm"]
-readme = "../README.md"
+readme = "README.md"
 
 [[bin]]
 name = "smb"
@@ -17,17 +17,11 @@ path = "src/main.rs"
 
 [dependencies]
 anyhow = "1.0.58"
-app-fun = { version = "0.3.0", path = "../app-fun" }
-app-oten = { version = "0.3.0", path = "../app-oten" }
-app-pkt = { version = "0.3.0", path = "../app-pkt" }
-app-rdb = { version = "0.3.0", path = "../app-rdb" }
 clap = { version = "4.1.6", features = ["derive"] }
 clap_mangen = "0.2.10"
 console = "0.15.0"
 dialoguer = "0.10.4"
 dirs = "4.0.0"
-dotenvy = "0.15"
-dotenvy_macro = "0.15"
 home = "0.5.4"
 log = "0.4.14"
 open = "4.0.1"

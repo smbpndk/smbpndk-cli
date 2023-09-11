@@ -60,7 +60,7 @@ pub async fn get_project(id: String) -> Result<Project> {
     match response.status() {
         reqwest::StatusCode::OK => {
             let project: Project = response.json().await?;
-            println!("Project requested: {project:#?}");
+            //println!("Project requested: {project:#?}");
             Ok(project)
         }
         _ => Err(anyhow!("Failed to request a project.")),

@@ -1,17 +1,19 @@
 use super::{model::User, signup::GithubEmail};
 use anyhow::{anyhow, Result};
 use console::style;
-use dotenvy_macro::dotenv;
 use log::debug;
 use regex::Regex;
 use reqwest::{Client, Response, StatusCode};
 use serde::{Deserialize, Serialize};
 use serde_repr::Deserialize_repr;
-use smbpndk_networking::smb_base_url_builder;
+use smbpndk_networking::{
+    constants::{GH_OAUTH_CLIENT_ID, GH_OAUTH_REDIRECT_HOST, GH_OAUTH_REDIRECT_PORT},
+    smb_base_url_builder,
+};
 use spinners::Spinner;
 use std::{
     fmt::{Display, Formatter},
-    fs::{self, create_dir_all, OpenOptions},
+    fs::{create_dir_all, OpenOptions},
     io::{BufRead, BufReader, Write},
     net::{TcpListener, TcpStream},
     sync::mpsc::{self, Receiver, Sender},
@@ -106,11 +108,7 @@ pub async fn authorize_github() -> Result<SmbAuthorization> {
 }
 
 fn setup_oauth_callback_server(tx: Sender<String>) {
-    let port = dotenv!(
-        "GH_OAUTH_REDIRECT_PORT",
-        "Please set GH_OAUTH_REDIRECT_PORT"
-    );
-    let listener = TcpListener::bind(format!("127.0.0.1:{}", port)).unwrap();
+    let listener = TcpListener::bind(format!("127.0.0.1:{}", GH_OAUTH_REDIRECT_PORT)).unwrap();
     for stream in listener.incoming() {
         let stream = stream.unwrap();
         handle_connection(stream, tx.clone());
@@ -125,7 +123,7 @@ fn handle_connection(mut stream: TcpStream, tx: Sender<String>) {
 
     let code_regex = Regex::new(r"code=([^&]*)").unwrap();
 
-    let (status_line, filename) = match code_regex.captures(request_line) {
+    let (status_line, contents) = match code_regex.captures(request_line) {
         Some(group) => {
             let code = group.get(1).unwrap().as_str();
             debug!("Code: {:#?}", code);
@@ -139,20 +137,45 @@ fn handle_connection(mut stream: TcpStream, tx: Sender<String>) {
                     debug!("Failed to send code to channel: {e}");
                 }
             }
-            ("HTTP/1.1 200 OK", "./smbpndk-cli/src/account/hello.html")
+            (
+                "HTTP/1.1 200 OK",
+                "<!DOCTYPE html>
+
+                <head>
+                    <meta charset='utf-8'>
+                    <title>Hello!</title>
+                </head>
+                
+                <body>
+                    <h1>Authenticated!</h1>
+                    <p>Back to the terminal console to finish your registration.</p>
+                </body>",
+            )
         }
         None => {
             debug!("Code not found.");
             (
                 "HTTP/1.1 404 NOT FOUND",
-                "./smbpndk-cli/src/account/404.html",
+                "<!DOCTYPE html>
+                <html lang='en'>
+                
+                <head>
+                    <meta charset='utf-8'>
+                    <title>404 Not found</title>
+                </head>
+                
+                <body>
+                    <h1>Oops!</h1>
+                    <p>Sorry, I don't know what you're asking for.</p>
+                </body>
+                
+                </html>",
             )
         }
     };
 
-    let contents = fs::read_to_string(filename).unwrap();
-    let length = contents.len();
-    let response = format!("{status_line}\r\nContent-Length: {length}\r\n\r\n{contents}");
+    debug!("Contents: {:#?}", &contents);
+    let response = format!("{status_line}\r\n\r\n{contents}");
     stream.write_all(response.as_bytes()).unwrap();
     stream.flush().unwrap();
 }
@@ -221,22 +244,13 @@ fn build_github_oauth_url() -> String {
 }
 
 fn github_base_url_builder() -> URLBuilder {
-    let client_id = dotenv!("GH_OAUTH_CLIENT_ID", "Please set GH_OAUTH_CLIENT_ID");
-    let redirect_host = dotenv!(
-        "GH_OAUTH_REDIRECT_HOST",
-        "Please set GH_OAUTH_REDIRECT_HOST"
-    );
-    let redirect_port = dotenv!(
-        "GH_OAUTH_REDIRECT_PORT",
-        "Please set GH_OAUTH_REDIRECT_PORT"
-    );
-    let redirect_url = format!("{}:{}", &redirect_host, &redirect_port);
+    let redirect_url = format!("{}:{}", GH_OAUTH_REDIRECT_HOST, GH_OAUTH_REDIRECT_PORT);
 
     let mut url_builder = URLBuilder::new();
     url_builder
         .set_protocol("https")
         .set_host("github.com")
-        .add_param("client_id", &client_id)
+        .add_param("client_id", GH_OAUTH_CLIENT_ID)
         .add_param("redirect_uri", &redirect_url);
     url_builder
 }

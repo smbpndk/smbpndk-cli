@@ -2,7 +2,7 @@ pub mod constants;
 
 use crate::constants::TOKEN_PATH_STR;
 use anyhow::{anyhow, Result};
-use dotenvy_macro::dotenv;
+use constants::{SMB_API_HOST, SMB_API_PROTOCOL, SMB_CLIENT_ID, SMB_CLIENT_SECRET};
 use log::debug;
 use std::path::PathBuf;
 use url_builder::URLBuilder;
@@ -36,15 +36,11 @@ pub fn smb_token_file_path() -> Option<PathBuf> {
 }
 
 pub fn smb_base_url_builder() -> URLBuilder {
-    let client_id = dotenv!("SMB_CLIENT_ID", "Please set SMB_CLIENT_ID");
-    let client_secret = dotenv!("SMB_CLIENT_SECRET", "Please set SMB_CLIENT_SECRET");
-    let api_host = dotenv!("SMB_API_HOST", "Please set SMB_API_HOST");
-    let api_protocol = dotenv!("SMB_API_PROTOCOL", "Please set SMB_API_PROTOCOL");
     let mut url_builder = URLBuilder::new();
     url_builder
-        .set_protocol(&api_protocol)
-        .set_host(&api_host)
-        .add_param("client_id", &client_id)
-        .add_param("client_secret", &client_secret);
+        .set_protocol(SMB_API_PROTOCOL)
+        .set_host(SMB_API_HOST)
+        .add_param("client_id", SMB_CLIENT_ID)
+        .add_param("client_secret", SMB_CLIENT_SECRET);
     url_builder
 }
