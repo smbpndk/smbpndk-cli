@@ -1,6 +1,6 @@
 use super::SignupMethod;
 use crate::account::{
-    lib::{authorize_github, smb_base_url_builder},
+    lib::authorize_github,
     model::{Data, Status},
 };
 use anyhow::{anyhow, Result};
@@ -11,6 +11,7 @@ use reqwest::{Client, StatusCode};
 use serde::{Deserialize, Serialize};
 use smbpndk_model::CommandResult;
 
+use smbpndk_networking::smb_base_url_builder;
 use smbpndk_utils::email_validation;
 use spinners::Spinner;
 use std::fmt::{Display, Formatter};

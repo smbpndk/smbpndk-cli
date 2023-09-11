@@ -2,7 +2,7 @@ use anyhow::{anyhow, Result};
 use app_oten::{self, handler::process_auth_app};
 use clap::Parser;
 use console::style;
-use dotenv::dotenv;
+use dotenvy::dotenv;
 use smbpndk_cli::{
     account::process_account,
     cli::{Cli, Commands},

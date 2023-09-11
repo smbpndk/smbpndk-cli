@@ -1,6 +1,6 @@
 use crate::account::{
     forgot::{Param, UserUpdatePassword},
-    lib::{authorize_github, smb_base_url_builder, ErrorCode, GithubInfo, SmbAuthorization},
+    lib::{authorize_github, save_token, ErrorCode, GithubInfo, SmbAuthorization},
     model::{Data, Status, User},
     signup::{
         do_signup, GithubEmail, Provider, SignupGithubParams, SignupMethod, SignupUserGithub,
@@ -10,16 +10,13 @@ use anyhow::{anyhow, Result};
 use console::{style, Term};
 use dialoguer::{theme::ColorfulTheme, Confirm, Input, Password, Select};
 use log::debug;
-use reqwest::{Client, Response, StatusCode};
+use reqwest::{Client, StatusCode};
 use serde::{Deserialize, Serialize};
-use serde_json::json;
 use smbpndk_model::CommandResult;
+use smbpndk_networking::smb_base_url_builder;
 use smbpndk_utils::email_validation;
 use spinners::Spinner;
-use std::{
-    fs::{self, create_dir_all, OpenOptions},
-    io::Write,
-};
+use std::fs::{self};
 
 pub struct LoginArgs {
     pub username: String,
@@ -232,7 +229,7 @@ async fn do_process_login(args: LoginArgs) -> Result<CommandResult> {
     match response.status() {
         StatusCode::OK => {
             // Login successful
-            save_token(response).await
+            save_token(&response).await
         }
         StatusCode::NOT_FOUND => {
             // Account not found and we show signup option
@@ -253,43 +250,6 @@ async fn do_process_login(args: LoginArgs) -> Result<CommandResult> {
         }
         _ => {
             let error = anyhow!("Login failed. Check your username and password.");
-            return Err(error);
-        }
-    }
-}
-
-async fn save_token(response: Response) -> Result<CommandResult> {
-    let headers = response.headers();
-    match headers.get("Authorization") {
-        Some(token) => {
-            debug!("{}", token.to_str()?);
-            match home::home_dir() {
-                Some(path) => {
-                    debug!("{}", path.to_str().unwrap());
-                    create_dir_all(path.join(".smb"))?;
-                    let mut file = OpenOptions::new()
-                        .create(true)
-                        .write(true)
-                        .open([path.to_str().unwrap(), "/.smb/token"].join(""))?;
-                    file.write_all(token.to_str()?.as_bytes())?;
-
-                    Ok(CommandResult {
-                        spinner: Spinner::new(
-                            spinners::Spinners::SimpleDotsScrolling,
-                            style("Logging you in...").green().bold().to_string(),
-                        ),
-                        symbol: "✅".to_owned(),
-                        msg: "You are logged in!".to_owned(),
-                    })
-                }
-                None => {
-                    let error = anyhow!("Failed to get home directory.");
-                    return Err(error);
-                }
-            }
-        }
-        None => {
-            let error = anyhow!("Failed to get token. Probably a backend issue.");
             return Err(error);
         }
     }
@@ -420,6 +380,39 @@ async fn input_reset_password_token() -> Result<CommandResult> {
     }
 }
 
+pub async fn process_logout() -> Result<CommandResult> {
+    let spinner = Spinner::new(
+        spinners::Spinners::SimpleDotsScrolling,
+        style("Logging you out...").green().bold().to_string(),
+    );
+    match home::home_dir() {
+        Some(path) => {
+            debug!("Home directory: {}.", path.to_str().unwrap());
+
+            // Check if token file exists
+            if !path.join(".smb/token").exists() {
+                return Ok(CommandResult {
+                    spinner,
+                    symbol: "✅".to_owned(),
+                    msg: "You are not logged in.".to_owned(),
+                });
+            }
+
+            // Remove token file
+            fs::remove_file(path.join(".smb/token"))?;
+
+            Ok(CommandResult {
+                spinner,
+                symbol: "✅".to_owned(),
+                msg: "You are now logged out!".to_owned(),
+            })
+        }
+        None => Err(anyhow!("Failed to get home directory. Are you logged in?")),
+    }
+}
+
+// Private functions
+
 fn build_smb_login_url() -> String {
     let mut url_builder = smb_base_url_builder();
     url_builder.add_route("v1/users/sign_in");
@@ -442,27 +435,4 @@ fn build_smb_reset_password_url() -> String {
     let mut url_builder = smb_base_url_builder();
     url_builder.add_route("v1/users/password");
     url_builder.build()
-}
-
-pub async fn process_logout() -> Result<CommandResult> {
-    let spinner = Spinner::new(
-        spinners::Spinners::SimpleDotsScrolling,
-        style("Logging you out...").green().bold().to_string(),
-    );
-    match home::home_dir() {
-        Some(path) => {
-            debug!("{}", path.to_str().unwrap());
-            fs::remove_file([path.to_str().unwrap(), "/.smb/token"].join(""))?;
-
-            Ok(CommandResult {
-                spinner,
-                symbol: "✅".to_owned(),
-                msg: "You are logged out!".to_owned(),
-            })
-        }
-        None => {
-            let error = anyhow!("Failed to get home directory. Are you logged in?");
-            Err(error)
-        }
-    }
 }

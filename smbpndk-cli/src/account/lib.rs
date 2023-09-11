@@ -1,16 +1,18 @@
 use anyhow::{anyhow, Result};
 use console::style;
-use log::{debug, info};
+use log::debug;
 use regex::Regex;
-use reqwest::{Client, StatusCode};
+use reqwest::{Client, Response, StatusCode};
 use serde::{Deserialize, Serialize};
 
 use serde_repr::Deserialize_repr;
+use smbpndk_model::CommandResult;
+use smbpndk_networking::smb_base_url_builder;
 use spinners::Spinner;
 use std::{
     env,
     fmt::{Display, Formatter},
-    fs,
+    fs::{self, create_dir_all, OpenOptions},
     io::{BufRead, BufReader, Write},
     net::{TcpListener, TcpStream},
     sync::mpsc::{self, Receiver, Sender},
@@ -176,6 +178,7 @@ pub async fn process_connect_github(code: String) -> Result<SmbAuthorization> {
         StatusCode::OK => {
             // Account authorized and token received
             spinner.stop_and_persist("✅", "You're logged in with your GitHub account!".into());
+            save_token(&response).await?;
             let result = response.json().await?;
             println!("Result: {:#?}", &result);
             Ok(result)
@@ -217,20 +220,6 @@ fn build_github_oauth_url() -> String {
     url_builder.build()
 }
 
-pub fn smb_base_url_builder() -> URLBuilder {
-    let client_id = env::var("SMB_CLIENT_ID").expect("Please set SMB_CLIENT_ID");
-    let client_secret = env::var("SMB_CLIENT_SECRET").expect("Please set SMB_CLIENT_SECRET");
-    let api_host = env::var("SMB_API_HOST").expect("Please set SMB_API_HOST");
-    let api_protocol = env::var("SMB_API_PROTOCOL").expect("Please set SMB_API_PROTOCOL");
-    let mut url_builder = URLBuilder::new();
-    url_builder
-        .set_protocol(&api_protocol)
-        .set_host(&api_host)
-        .add_param("client_id", &client_id)
-        .add_param("client_secret", &client_secret);
-    url_builder
-}
-
 fn github_base_url_builder() -> URLBuilder {
     let client_id = env::var("GH_OAUTH_CLIENT_ID").expect("Please set GH_OAUTH_CLIENT_ID");
     let redirect_host =
@@ -246,4 +235,42 @@ fn github_base_url_builder() -> URLBuilder {
         .add_param("client_id", &client_id)
         .add_param("redirect_uri", &redirect_url);
     url_builder
+}
+
+pub async fn save_token(response: &Response) -> Result<CommandResult> {
+    let headers = response.headers();
+    println!("Headers: {:#?}", &headers);
+    match headers.get("Authorization") {
+        Some(token) => {
+            debug!("{}", token.to_str()?);
+            match home::home_dir() {
+                Some(path) => {
+                    debug!("{}", path.to_str().unwrap());
+                    create_dir_all(path.join(".smb"))?;
+                    let mut file = OpenOptions::new()
+                        .create(true)
+                        .write(true)
+                        .open([path.to_str().unwrap(), "/.smb/token"].join(""))?;
+                    file.write_all(token.to_str()?.as_bytes())?;
+
+                    Ok(CommandResult {
+                        spinner: Spinner::new(
+                            spinners::Spinners::SimpleDotsScrolling,
+                            style("Logging you in...").green().bold().to_string(),
+                        ),
+                        symbol: "✅".to_owned(),
+                        msg: "You are logged in!".to_owned(),
+                    })
+                }
+                None => {
+                    let error = anyhow!("Failed to get home directory.");
+                    return Err(error);
+                }
+            }
+        }
+        None => {
+            let error = anyhow!("Failed to get token. Probably a backend issue.");
+            return Err(error);
+        }
+    }
 }
