@@ -9,7 +9,7 @@ repository = "https://github.com/smbpndk/smbpndk-cli"
 documentation = "https://docs.smbpndk.com/cli"
 keywords = ["cli", "cloud", "web2", "web3", "smbpndk"]
 categories = ["command-line-utilities", "command-line-interface", "cryptography::cryptocurrencies", "development-tools", "wasm"]
-readme = "./../README.md"
+readme = "README.md"
 
 [[bin]]
 name = "smb"
