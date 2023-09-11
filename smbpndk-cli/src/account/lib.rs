@@ -10,7 +10,6 @@ use serde_repr::Deserialize_repr;
 use smbpndk_networking::smb_base_url_builder;
 use spinners::Spinner;
 use std::{
-    env,
     fmt::{Display, Formatter},
     fs::{self, create_dir_all, OpenOptions},
     io::{BufRead, BufReader, Write},
