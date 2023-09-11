@@ -13,7 +13,7 @@ use smbpndk_networking::{
 use spinners::Spinner;
 use std::{
     fmt::{Display, Formatter},
-    fs::{self, create_dir_all, OpenOptions},
+    fs::{create_dir_all, OpenOptions},
     io::{BufRead, BufReader, Write},
     net::{TcpListener, TcpStream},
     sync::mpsc::{self, Receiver, Sender},
@@ -123,7 +123,7 @@ fn handle_connection(mut stream: TcpStream, tx: Sender<String>) {
 
     let code_regex = Regex::new(r"code=([^&]*)").unwrap();
 
-    let (status_line, filename) = match code_regex.captures(request_line) {
+    let (status_line, contents) = match code_regex.captures(request_line) {
         Some(group) => {
             let code = group.get(1).unwrap().as_str();
             debug!("Code: {:#?}", code);
@@ -137,20 +137,45 @@ fn handle_connection(mut stream: TcpStream, tx: Sender<String>) {
                     debug!("Failed to send code to channel: {e}");
                 }
             }
-            ("HTTP/1.1 200 OK", "./smbpndk-cli/src/account/hello.html")
+            (
+                "HTTP/1.1 200 OK",
+                "<!DOCTYPE html>
+
+                <head>
+                    <meta charset='utf-8'>
+                    <title>Hello!</title>
+                </head>
+                
+                <body>
+                    <h1>Authenticated!</h1>
+                    <p>Back to the terminal console to finish your registration.</p>
+                </body>",
+            )
         }
         None => {
             debug!("Code not found.");
             (
                 "HTTP/1.1 404 NOT FOUND",
-                "./smbpndk-cli/src/account/404.html",
+                "<!DOCTYPE html>
+                <html lang='en'>
+                
+                <head>
+                    <meta charset='utf-8'>
+                    <title>404 Not found</title>
+                </head>
+                
+                <body>
+                    <h1>Oops!</h1>
+                    <p>Sorry, I don't know what you're asking for.</p>
+                </body>
+                
+                </html>",
             )
         }
     };
 
-    let contents = fs::read_to_string(filename).unwrap();
-    let length = contents.len();
-    let response = format!("{status_line}\r\nContent-Length: {length}\r\n\r\n{contents}");
+    debug!("Contents: {:#?}", &contents);
+    let response = format!("{status_line}\r\n\r\n{contents}");
     stream.write_all(response.as_bytes()).unwrap();
     stream.flush().unwrap();
 }
