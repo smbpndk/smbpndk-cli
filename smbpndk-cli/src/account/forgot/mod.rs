@@ -4,7 +4,7 @@ use dialoguer::{theme::ColorfulTheme, Input, Password};
 use reqwest::{Client, StatusCode};
 use serde::{Deserialize, Serialize};
 use smbpndk_model::CommandResult;
-use smbpndk_networking::constants::BASE_URL;
+use smbpndk_networking::smb_base_url_builder;
 use smbpndk_utils::email_validation;
 use spinners::Spinner;
 
@@ -35,7 +35,7 @@ pub async fn process_forgot() -> Result<CommandResult> {
     };
 
     let response = Client::new()
-        .post([BASE_URL, "/v1/users/password"].join(""))
+        .post(build_smb_forgot_url())
         .json(&params)
         .send()
         .await?;
@@ -112,7 +112,7 @@ async fn input_code() -> Result<CommandResult> {
     );
 
     let response = Client::new()
-        .put([BASE_URL, "/v1/users/password"].join(""))
+        .put(build_smb_forgot_url())
         .json(&params)
         .send()
         .await?;
@@ -140,4 +140,10 @@ async fn input_code() -> Result<CommandResult> {
             msg: "Something wrong when trying to reset email.".to_owned(),
         }),
     }
+}
+
+fn build_smb_forgot_url() -> String {
+    let mut url_builder = smb_base_url_builder();
+    url_builder.add_route("v1/users/password");
+    url_builder.build()
 }

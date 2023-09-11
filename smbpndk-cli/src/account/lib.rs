@@ -1,13 +1,15 @@
 use super::{model::User, signup::GithubEmail};
 use anyhow::{anyhow, Result};
 use console::style;
-use dotenvy_macro::dotenv;
 use log::debug;
 use regex::Regex;
 use reqwest::{Client, Response, StatusCode};
 use serde::{Deserialize, Serialize};
 use serde_repr::Deserialize_repr;
-use smbpndk_networking::smb_base_url_builder;
+use smbpndk_networking::{
+    constants::{GH_OAUTH_CLIENT_ID, GH_OAUTH_REDIRECT_HOST, GH_OAUTH_REDIRECT_PORT},
+    smb_base_url_builder,
+};
 use spinners::Spinner;
 use std::{
     fmt::{Display, Formatter},
@@ -106,11 +108,7 @@ pub async fn authorize_github() -> Result<SmbAuthorization> {
 }
 
 fn setup_oauth_callback_server(tx: Sender<String>) {
-    let port = dotenv!(
-        "GH_OAUTH_REDIRECT_PORT",
-        "Please set GH_OAUTH_REDIRECT_PORT"
-    );
-    let listener = TcpListener::bind(format!("127.0.0.1:{}", port)).unwrap();
+    let listener = TcpListener::bind(format!("127.0.0.1:{}", GH_OAUTH_REDIRECT_PORT)).unwrap();
     for stream in listener.incoming() {
         let stream = stream.unwrap();
         handle_connection(stream, tx.clone());
@@ -221,22 +219,13 @@ fn build_github_oauth_url() -> String {
 }
 
 fn github_base_url_builder() -> URLBuilder {
-    let client_id = dotenv!("GH_OAUTH_CLIENT_ID", "Please set GH_OAUTH_CLIENT_ID");
-    let redirect_host = dotenv!(
-        "GH_OAUTH_REDIRECT_HOST",
-        "Please set GH_OAUTH_REDIRECT_HOST"
-    );
-    let redirect_port = dotenv!(
-        "GH_OAUTH_REDIRECT_PORT",
-        "Please set GH_OAUTH_REDIRECT_PORT"
-    );
-    let redirect_url = format!("{}:{}", &redirect_host, &redirect_port);
+    let redirect_url = format!("{}:{}", GH_OAUTH_REDIRECT_HOST, GH_OAUTH_REDIRECT_PORT);
 
     let mut url_builder = URLBuilder::new();
     url_builder
         .set_protocol("https")
         .set_host("github.com")
-        .add_param("client_id", &client_id)
+        .add_param("client_id", GH_OAUTH_CLIENT_ID)
         .add_param("redirect_uri", &redirect_url);
     url_builder
 }

@@ -6,7 +6,7 @@ mod ar_date_format {
     use chrono::{DateTime, TimeZone, Utc};
     use serde::{self, Deserialize, Deserializer, Serializer};
 
-    const FORMAT: &'static str = "%Y-%m-%dT%H:%M:%S%.f%#z";
+    const FORMAT: &str = "%Y-%m-%dT%H:%M:%S%.f%#z";
 
     // The signature of a serialize_with function must follow the pattern:
     //
