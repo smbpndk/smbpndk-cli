@@ -310,7 +310,7 @@ async fn connect_github_account(auth: SmbAuthorization) -> Result<CommandResult>
             Err(error)
         }
     }
-} 
+}
 
 async fn login_with_email() -> Result<CommandResult> {
     println!("Provide your login credentials.");
