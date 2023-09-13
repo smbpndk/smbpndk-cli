@@ -49,7 +49,7 @@ pub async fn process_login() -> Result<CommandResult> {
                 style("Loading...").green().bold().to_string(),
             ),
             symbol: "✅".to_owned(),
-            msg: "You are already logged in.".to_owned(),
+            msg: "You are already logged in. Please logout first.".to_owned(),
         });
     }
 
@@ -145,6 +145,7 @@ async fn process_authorization(auth: SmbAuthorization) -> Result<CommandResult> 
                 let error = anyhow!("Password not set.");
                 return Err(error);
             }
+            ErrorCode::GithubNotLinked => return connect_github_account(auth).await,
         }
     }
 
@@ -258,6 +259,54 @@ async fn resend_email_verification(user: User) -> Result<CommandResult> {
         }),
         _ => {
             let error = anyhow!("Failed to send verification email.");
+            Err(error)
+        }
+    }
+}
+
+async fn connect_github_account(auth: SmbAuthorization) -> Result<CommandResult> {
+    let confirm = Confirm::with_theme(&ColorfulTheme::default())
+        .with_prompt("Do you want to link your GitHub account?")
+        .interact()
+        .unwrap();
+
+    // Link GitHub account if user confirms
+    if !confirm {
+        let spinner = Spinner::new(
+            spinners::Spinners::SimpleDotsScrolling,
+            style("Cancel operation.").green().bold().to_string(),
+        );
+        return Ok(CommandResult {
+            spinner,
+            symbol: "✅".to_owned(),
+            msg: "Doing nothing.".to_owned(),
+        });
+    }
+
+    let spinner = Spinner::new(
+        spinners::Spinners::SimpleDotsScrolling,
+        style("Linking your GitHub account...")
+            .green()
+            .bold()
+            .to_string(),
+    );
+
+    let response = Client::new()
+        .post(build_smb_connect_github_url())
+        .json(&auth)
+        .header("Accept", "application/json")
+        .header("Content-Type", "application/x-www-form-urlencoded")
+        .send()
+        .await?;
+
+    match response.status() {
+        reqwest::StatusCode::OK => Ok(CommandResult {
+            spinner,
+            symbol: "✅".to_owned(),
+            msg: "GitHub account linked!".to_owned(),
+        }),
+        _ => {
+            let error = anyhow!("Failed to link GitHub account.");
             Err(error)
         }
     }
@@ -488,5 +537,11 @@ fn build_smb_resend_reset_password_instructions_url() -> String {
 fn build_smb_reset_password_url() -> String {
     let mut url_builder = smb_base_url_builder();
     url_builder.add_route("v1/users/password");
+    url_builder.build()
+}
+
+fn build_smb_connect_github_url() -> String {
+    let mut url_builder = smb_base_url_builder();
+    url_builder.add_route("v1/link_github_account");
     url_builder.build()
 }
