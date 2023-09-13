@@ -49,7 +49,7 @@ pub async fn process_login() -> Result<CommandResult> {
                 style("Loading...").green().bold().to_string(),
             ),
             symbol: "✅".to_owned(),
-            msg: "You are already logged in.".to_owned(),
+            msg: "You are already logged in. Please logout first.".to_owned(),
         });
     }
 

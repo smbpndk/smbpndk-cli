@@ -11,7 +11,7 @@ use reqwest::{Client, StatusCode};
 use serde::{Deserialize, Serialize};
 use smbpndk_model::CommandResult;
 
-use smbpndk_networking::smb_base_url_builder;
+use smbpndk_networking::{smb_base_url_builder, smb_token_file_path};
 use smbpndk_utils::email_validation;
 use spinners::Spinner;
 use std::fmt::{Display, Formatter};
@@ -58,6 +58,18 @@ struct SignupResult {
 }
 
 pub async fn process_signup() -> Result<CommandResult> {
+    // Check if token file exists
+    if smb_token_file_path().is_some() {
+        return Ok(CommandResult {
+            spinner: Spinner::new(
+                spinners::Spinners::SimpleDotsScrolling,
+                style("Loading...").green().bold().to_string(),
+            ),
+            symbol: "✅".to_owned(),
+            msg: "You are already logged in. Please logout first.".to_owned(),
+        });
+    }
+
     let signup_methods = vec![SignupMethod::Email, SignupMethod::GitHub];
     let selection = Select::with_theme(&ColorfulTheme::default())
         .items(&signup_methods)
