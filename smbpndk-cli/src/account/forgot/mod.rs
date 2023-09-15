@@ -4,7 +4,7 @@ use dialoguer::{theme::ColorfulTheme, Input, Password};
 use reqwest::{Client, StatusCode};
 use serde::{Deserialize, Serialize};
 use smbpndk_model::CommandResult;
-use smbpndk_networking::smb_base_url_builder;
+use smbpndk_networking::{constants::PATH_USERS_PASSWORD, smb_base_url_builder};
 use smbpndk_utils::email_validation;
 use spinners::Spinner;
 
@@ -144,6 +144,6 @@ async fn input_code() -> Result<CommandResult> {
 
 fn build_smb_forgot_url() -> String {
     let mut url_builder = smb_base_url_builder();
-    url_builder.add_route("v1/users/password");
+    url_builder.add_route(PATH_USERS_PASSWORD);
     url_builder.build()
 }

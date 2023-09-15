@@ -7,7 +7,9 @@ use reqwest::{Client, Response, StatusCode};
 use serde::{Deserialize, Serialize};
 use serde_repr::Deserialize_repr;
 use smbpndk_networking::{
-    constants::{GH_OAUTH_CLIENT_ID, GH_OAUTH_REDIRECT_HOST, GH_OAUTH_REDIRECT_PORT},
+    constants::{
+        GH_OAUTH_CLIENT_ID, GH_OAUTH_REDIRECT_HOST, GH_OAUTH_REDIRECT_PORT, PATH_AUTHORIZE,
+    },
     smb_base_url_builder,
 };
 use spinners::Spinner;
@@ -240,7 +242,7 @@ pub async fn process_connect_github(code: String) -> Result<SmbAuthorization> {
 
 fn build_authorize_smb_url() -> String {
     let mut url_builder = smb_base_url_builder();
-    url_builder.add_route("v1/authorize");
+    url_builder.add_route(PATH_AUTHORIZE);
     url_builder.build()
 }
 

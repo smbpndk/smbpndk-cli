@@ -11,7 +11,7 @@ use reqwest::{Client, StatusCode};
 use serde::{Deserialize, Serialize};
 use smbpndk_model::CommandResult;
 
-use smbpndk_networking::{smb_base_url_builder, smb_token_file_path};
+use smbpndk_networking::{constants::PATH_USERS, smb_base_url_builder, smb_token_file_path};
 use smbpndk_utils::email_validation;
 use spinners::Spinner;
 use std::fmt::{Display, Formatter};
@@ -206,6 +206,6 @@ pub async fn do_signup<T: Serialize + ?Sized>(args: &T) -> Result<CommandResult>
 
 fn build_smb_signup_url() -> String {
     let mut url_builder = smb_base_url_builder();
-    url_builder.add_route("v1/users");
+    url_builder.add_route(PATH_USERS);
     url_builder.build()
 }
