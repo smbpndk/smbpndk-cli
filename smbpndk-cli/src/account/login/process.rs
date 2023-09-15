@@ -13,7 +13,13 @@ use log::debug;
 use reqwest::{Client, StatusCode};
 use serde::{Deserialize, Serialize};
 use smbpndk_model::CommandResult;
-use smbpndk_networking::{get_smb_token, smb_base_url_builder, smb_token_file_path};
+use smbpndk_networking::{
+    constants::{
+        PATH_LINK_GITHUB_ACCOUNT, PATH_RESEND_CONFIRMATION, PATH_RESET_PASSWORD_INSTRUCTIONS,
+        PATH_USERS_PASSWORD, PATH_USERS_SIGN_IN, PATH_USERS_SIGN_OUT,
+    },
+    get_smb_token, smb_base_url_builder, smb_token_file_path,
+};
 use smbpndk_utils::email_validation;
 use spinners::Spinner;
 use std::fs::{self};
@@ -512,36 +518,36 @@ async fn do_process_logout() -> Result<()> {
 
 fn build_smb_login_url() -> String {
     let mut url_builder = smb_base_url_builder();
-    url_builder.add_route("v1/users/sign_in");
+    url_builder.add_route(PATH_USERS_SIGN_IN);
     url_builder.build()
 }
 
 fn build_smb_logout_url() -> String {
     let mut url_builder = smb_base_url_builder();
-    url_builder.add_route("v1/users/sign_out");
+    url_builder.add_route(PATH_USERS_SIGN_OUT);
     url_builder.build()
 }
 
 fn build_smb_resend_email_verification_url() -> String {
     let mut url_builder = smb_base_url_builder();
-    url_builder.add_route("v1/resend_confirmation");
+    url_builder.add_route(PATH_RESEND_CONFIRMATION);
     url_builder.build()
 }
 
 fn build_smb_resend_reset_password_instructions_url() -> String {
     let mut url_builder = smb_base_url_builder();
-    url_builder.add_route("v1/resend_reset_password_instructions");
+    url_builder.add_route(PATH_RESET_PASSWORD_INSTRUCTIONS);
     url_builder.build()
 }
 
 fn build_smb_reset_password_url() -> String {
     let mut url_builder = smb_base_url_builder();
-    url_builder.add_route("v1/users/password");
+    url_builder.add_route(PATH_USERS_PASSWORD);
     url_builder.build()
 }
 
 fn build_smb_connect_github_url() -> String {
     let mut url_builder = smb_base_url_builder();
-    url_builder.add_route("v1/link_github_account");
+    url_builder.add_route(PATH_LINK_GITHUB_ACCOUNT);
     url_builder.build()
 }

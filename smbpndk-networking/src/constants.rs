@@ -20,3 +20,13 @@ pub const SMB_API_PROTOCOL: &str = "https";
 pub const SMB_API_HOST: &str = "localhost:8088";
 #[cfg(not(debug_assertions))]
 pub const SMB_API_HOST: &str = "api.smbpndk.com";
+
+// Paths
+pub const PATH_USERS: &str = "v1/users";
+pub const PATH_USERS_PASSWORD: &str = "v1/users/password";
+pub const PATH_USERS_SIGN_OUT: &str = "v1/users/sign_out";
+pub const PATH_USERS_SIGN_IN: &str = "v1/users/sign_in";
+pub const PATH_LINK_GITHUB_ACCOUNT: &str = "v1/link_github_account";
+pub const PATH_RESET_PASSWORD_INSTRUCTIONS: &str = "v1/resend_reset_password_instructions";
+pub const PATH_RESEND_CONFIRMATION: &str = "v1/resend_confirmation";
+pub const PATH_AUTHORIZE: &str = "v1/authorize";
