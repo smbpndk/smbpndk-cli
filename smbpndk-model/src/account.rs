@@ -1,6 +1,6 @@
 use crate::signup::GithubEmail;
 use serde::{Deserialize, Serialize};
-use serde_repr::Serialize_repr;
+use serde_repr::{Deserialize_repr, Serialize_repr};
 use std::fmt::{Display, Formatter};
 use tsify::Tsify;
 
@@ -44,7 +44,7 @@ pub struct SmbAuthorization {
     pub error_code: Option<ErrorCode>,
 }
 
-#[derive(Debug, Serialize_repr, Deserialize, PartialEq, Tsify)]
+#[derive(Debug, Serialize_repr, Deserialize_repr, PartialEq, Tsify)]
 #[tsify(namespace)]
 #[repr(u32)]
 pub enum ErrorCode {
