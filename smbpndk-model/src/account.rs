@@ -1,6 +1,6 @@
 use crate::signup::GithubEmail;
 use serde::{Deserialize, Serialize};
-use serde_repr::Serialize_repr;
+use serde_repr::{Deserialize_repr, Serialize_repr};
 use std::fmt::{Display, Formatter};
 
 // SMBPNDK Users.
@@ -39,7 +39,7 @@ pub struct SmbAuthorization {
     pub error_code: Option<ErrorCode>,
 }
 
-#[derive(Debug, Serialize_repr, Deserialize, PartialEq)]
+#[derive(Debug, Serialize_repr, Deserialize_repr, PartialEq)]
 #[repr(u32)]
 pub enum ErrorCode {
     EmailNotFound = 1000,
