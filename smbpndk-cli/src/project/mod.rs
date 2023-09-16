@@ -1,11 +1,15 @@
 pub mod cli;
 
 use self::cli::Commands;
+use crate::cli::CommandResult;
 use anyhow::{anyhow, Result};
 use console::style;
 use dialoguer::{theme::ColorfulTheme, Input};
 use log::debug;
-use smbpndk_model::{CommandResult, Config, Project, ProjectCreate};
+use smbpndk_model::{
+    self,
+    project::{Config, Project, ProjectCreate},
+};
 use smbpndk_networking_project::{create_project, delete_project, get_all, get_project};
 use spinners::Spinner;
 use std::{fs::OpenOptions, io::Write};

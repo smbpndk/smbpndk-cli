@@ -1,13 +1,11 @@
 pub mod account;
+pub mod app_auth;
 pub mod forgot;
 pub mod login;
+pub mod project;
 pub mod signup;
 
-use chrono::{DateTime, Utc};
-use serde::{Deserialize, Serialize};
-use spinners::Spinner;
-
-mod ar_date_format {
+pub mod ar_date_format {
     use chrono::{DateTime, TimeZone, Utc};
     use serde::{self, Deserialize, Deserializer, Serializer};
 
@@ -43,49 +41,4 @@ mod ar_date_format {
         Utc.datetime_from_str(&s, FORMAT)
             .map_err(serde::de::Error::custom)
     }
-}
-
-pub struct CommandResult {
-    pub spinner: Spinner,
-    pub symbol: String,
-    pub msg: String,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-pub struct AuthApp {
-    pub id: String,
-    pub secret: Option<String>,
-    pub name: String,
-    #[serde(with = "ar_date_format")]
-    pub created_at: DateTime<Utc>,
-    #[serde(with = "ar_date_format")]
-    pub updated_at: DateTime<Utc>,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-pub struct AuthAppCreate {
-    pub name: String,
-    pub description: String,
-}
-
-#[derive(Deserialize, Debug, Serialize)]
-pub struct Config {
-    pub current_project: Option<Project>,
-    pub current_auth_app: Option<AuthApp>,
-}
-
-#[derive(Deserialize, Debug, Serialize)]
-pub struct Project {
-    pub id: i32,
-    pub name: String,
-    pub description: String,
-    #[serde(with = "ar_date_format")]
-    pub created_at: DateTime<Utc>,
-    #[serde(with = "ar_date_format")]
-    pub updated_at: DateTime<Utc>,
-}
-#[derive(Serialize, Debug)]
-pub struct ProjectCreate {
-    pub name: String,
-    pub description: String,
 }

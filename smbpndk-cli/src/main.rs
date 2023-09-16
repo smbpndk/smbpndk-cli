@@ -1,12 +1,12 @@
 use anyhow::{anyhow, Result};
 use clap::Parser;
 use console::style;
+use smbpndk_cli::cli::CommandResult;
 use smbpndk_cli::{
     account::process_account,
     cli::{Cli, Commands},
     project::process_project,
 };
-use smbpndk_model::CommandResult;
 use std::{
     fs::{create_dir_all, OpenOptions},
     path::PathBuf,
