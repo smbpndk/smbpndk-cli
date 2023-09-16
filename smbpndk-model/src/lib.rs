@@ -1,3 +1,7 @@
+pub mod account;
+pub mod login;
+pub mod signup;
+
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use spinners::Spinner;

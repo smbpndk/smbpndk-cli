@@ -1,18 +1,19 @@
 use crate::account::{
     forgot::{Param, UserUpdatePassword},
-    lib::{authorize_github, save_token, ErrorCode, GithubInfo, SmbAuthorization},
-    model::{Data, Status, User},
-    signup::{
-        do_signup, GithubEmail, Provider, SignupGithubParams, SignupMethod, SignupUserGithub,
-    },
+    lib::{authorize_github, save_token},
+    signup::{do_signup, SignupMethod},
 };
 use anyhow::{anyhow, Result};
 use console::{style, Term};
 use dialoguer::{theme::ColorfulTheme, Confirm, Input, Password, Select};
 use log::debug;
 use reqwest::{Client, StatusCode};
-use serde::{Deserialize, Serialize};
-use smbpndk_model::CommandResult;
+use smbpndk_model::{
+    account::{ErrorCode, GithubInfo, SmbAuthorization, User},
+    login::{LoginArgs, LoginParams, UserParam},
+    signup::{GithubEmail, Provider, SignupGithubParams, SignupUserGithub},
+    CommandResult,
+};
 use smbpndk_networking::{
     constants::{
         PATH_LINK_GITHUB_ACCOUNT, PATH_RESEND_CONFIRMATION, PATH_RESET_PASSWORD_INSTRUCTIONS,
@@ -23,28 +24,6 @@ use smbpndk_networking::{
 use smbpndk_utils::email_validation;
 use spinners::Spinner;
 use std::fs::{self};
-
-pub struct LoginArgs {
-    pub username: String,
-    pub password: String,
-}
-
-#[derive(Debug, Serialize)]
-struct LoginParams {
-    user: UserParam,
-}
-
-#[derive(Debug, Serialize)]
-struct UserParam {
-    email: String,
-    password: String,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-struct LoginResult {
-    status: Status,
-    data: Data,
-}
 
 pub async fn process_login() -> Result<CommandResult> {
     // Check if token file exists
