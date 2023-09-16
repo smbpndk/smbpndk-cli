@@ -1,7 +1,10 @@
 use anyhow::{anyhow, Result};
 use log::debug;
 use reqwest::Client;
-use smbpndk_model::{Project, ProjectCreate};
+use smbpndk_model::{
+    self,
+    project::{Project, ProjectCreate},
+};
 use smbpndk_networking::{get_smb_token, smb_base_url_builder};
 
 pub async fn get_all() -> Result<Vec<Project>> {

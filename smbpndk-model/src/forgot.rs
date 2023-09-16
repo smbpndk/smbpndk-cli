@@ -21,3 +21,23 @@ pub struct UserUpdatePassword {
     pub password: String,
     pub password_confirmation: String,
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+    #[test]
+    fn test_update_password() {
+        let args = Args {
+            user: Email {
+                email: "test".to_owned(),
+            },
+        };
+        let json = json!({
+            "user": {
+                "email": "test",
+            },
+        });
+        assert_eq!(serde_json::to_value(args).unwrap(), json);
+    }
+}

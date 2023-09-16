@@ -1,12 +1,10 @@
+use crate::cli::CommandResult;
 use anyhow::Result;
 use console::style;
 use dialoguer::{theme::ColorfulTheme, Input, Password};
 use reqwest::{Client, StatusCode};
 use serde::{Deserialize, Serialize};
-use smbpndk_model::{
-    forgot::{Args, Email, Param, UserUpdatePassword},
-    CommandResult,
-};
+use smbpndk_model::forgot::{Args, Email, Param, UserUpdatePassword};
 use smbpndk_networking::{constants::PATH_USERS_PASSWORD, smb_base_url_builder};
 use smbpndk_utils::email_validation;
 use spinners::Spinner;

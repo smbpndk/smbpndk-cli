@@ -1,5 +1,12 @@
 use crate::{account, project};
 use clap::{Parser, Subcommand};
+use spinners::Spinner;
+
+pub struct CommandResult {
+    pub spinner: Spinner,
+    pub symbol: String,
+    pub msg: String,
+}
 
 #[derive(Parser)]
 #[clap(author, version, about)]
