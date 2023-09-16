@@ -64,7 +64,4 @@ impl Display for GithubEmail {
 }
 
 #[cfg(test)]
-mod tests {
-
-    
-}
+mod tests {}
