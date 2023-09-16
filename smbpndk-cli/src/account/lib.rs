@@ -1,11 +1,9 @@
-use super::{model::User, signup::GithubEmail};
 use anyhow::{anyhow, Result};
 use console::style;
 use log::debug;
 use regex::Regex;
 use reqwest::{Client, Response, StatusCode};
-use serde::{Deserialize, Serialize};
-use serde_repr::Deserialize_repr;
+use smbpndk_model::account::SmbAuthorization;
 use smbpndk_networking::{
     constants::{
         GH_OAUTH_CLIENT_ID, GH_OAUTH_REDIRECT_HOST, GH_OAUTH_REDIRECT_PORT, PATH_AUTHORIZE,
@@ -14,63 +12,12 @@ use smbpndk_networking::{
 };
 use spinners::Spinner;
 use std::{
-    fmt::{Display, Formatter},
     fs::{create_dir_all, OpenOptions},
     io::{BufRead, BufReader, Write},
     net::{TcpListener, TcpStream},
     sync::mpsc::{self, Receiver, Sender},
 };
 use url_builder::URLBuilder;
-
-// This is smb authorization model.
-#[derive(Debug, Serialize, Deserialize)]
-pub struct SmbAuthorization {
-    pub message: String,
-    pub user: Option<User>,
-    pub user_email: Option<GithubEmail>,
-    pub user_info: Option<GithubInfo>,
-    pub error_code: Option<ErrorCode>,
-}
-
-#[derive(Debug, serde_repr::Serialize_repr, Deserialize_repr, PartialEq)]
-#[repr(u32)]
-pub enum ErrorCode {
-    EmailNotFound = 1000,
-    EmailUnverified = 1001,
-    PasswordNotSet = 1003,
-    GithubNotLinked = 1004,
-}
-
-impl Display for ErrorCode {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        match self {
-            ErrorCode::EmailNotFound => write!(f, "Email not found."),
-            ErrorCode::EmailUnverified => write!(f, "Email not verified."),
-            ErrorCode::PasswordNotSet => write!(f, "Password not set."),
-            ErrorCode::GithubNotLinked => write!(f, "Github not connected."),
-        }
-    }
-}
-
-impl Copy for ErrorCode {}
-
-impl Clone for ErrorCode {
-    fn clone(&self) -> Self {
-        *self
-    }
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct GithubInfo {
-    pub id: i64,
-    pub login: String,
-    pub name: String,
-    pub avatar_url: String,
-    pub html_url: String,
-    pub email: Option<String>,
-    pub created_at: String,
-    pub updated_at: String,
-}
 
 pub async fn authorize_github() -> Result<SmbAuthorization> {
     // Spin up a simple localhost server to listen for the GitHub OAuth callback

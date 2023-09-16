@@ -3,20 +3,13 @@ use console::style;
 use dialoguer::{theme::ColorfulTheme, Input, Password};
 use reqwest::{Client, StatusCode};
 use serde::{Deserialize, Serialize};
-use smbpndk_model::CommandResult;
+use smbpndk_model::{
+    forgot::{Args, Email, Param, UserUpdatePassword},
+    CommandResult,
+};
 use smbpndk_networking::{constants::PATH_USERS_PASSWORD, smb_base_url_builder};
 use smbpndk_utils::email_validation;
 use spinners::Spinner;
-
-#[derive(Debug, Serialize)]
-struct Args {
-    user: Email,
-}
-
-#[derive(Debug, Serialize)]
-struct Email {
-    email: String,
-}
 
 pub async fn process_forgot() -> Result<CommandResult> {
     println!("Provide your login credentials.");
@@ -54,18 +47,6 @@ pub async fn process_forgot() -> Result<CommandResult> {
             msg: "Something wrong when trying to reset email.".to_owned(),
         }),
     }
-}
-
-#[derive(Debug, Serialize)]
-pub struct Param {
-    pub(crate) user: UserUpdatePassword,
-}
-
-#[derive(Debug, Serialize)]
-pub struct UserUpdatePassword {
-    pub(crate) reset_password_token: String,
-    pub(crate) password: String,
-    pub(crate) password_confirmation: String,
 }
 
 async fn input_code() -> Result<CommandResult> {
