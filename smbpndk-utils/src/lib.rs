@@ -3,7 +3,7 @@ use std::{fs::OpenOptions, io::Write};
 use anyhow::{anyhow, Result};
 use log::debug;
 use regex::Regex;
-use smbpndk_model::Config;
+use smbpndk_model::project::Config;
 
 pub fn email_validation(input: &str) -> Result<(), &'static str> {
     let email_regex = Regex::new(

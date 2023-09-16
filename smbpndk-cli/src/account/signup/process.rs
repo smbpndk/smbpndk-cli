@@ -1,15 +1,12 @@
 use super::SignupMethod;
-use crate::account::lib::authorize_github;
+use crate::{account::lib::authorize_github, cli::CommandResult};
 use anyhow::{anyhow, Result};
 use console::{style, Term};
 use dialoguer::{theme::ColorfulTheme, Input, Password, Select};
 use log::debug;
 use reqwest::{Client, StatusCode};
 use serde::Serialize;
-use smbpndk_model::{
-    signup::{SignupEmailParams, SignupResult, SignupUserEmail},
-    CommandResult,
-};
+use smbpndk_model::signup::{SignupEmailParams, SignupResult, SignupUserEmail};
 use smbpndk_networking::{constants::PATH_USERS, smb_base_url_builder, smb_token_file_path};
 use smbpndk_utils::email_validation;
 use spinners::Spinner;

@@ -1,6 +1,9 @@
-use crate::account::{
-    lib::{authorize_github, save_token},
-    signup::{do_signup, SignupMethod},
+use crate::{
+    account::{
+        lib::{authorize_github, save_token},
+        signup::{do_signup, SignupMethod},
+    },
+    cli::CommandResult,
 };
 use anyhow::{anyhow, Result};
 use console::{style, Term};
@@ -12,7 +15,6 @@ use smbpndk_model::{
     forgot::{Param, UserUpdatePassword},
     login::{LoginArgs, LoginParams, UserParam},
     signup::{GithubEmail, Provider, SignupGithubParams, SignupUserGithub},
-    CommandResult,
 };
 use smbpndk_networking::{
     constants::{

@@ -85,3 +85,27 @@ pub struct GithubInfo {
     pub created_at: String,
     pub updated_at: String,
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+    #[test]
+    fn test_smb_authorization() {
+        let smb_authorization = SmbAuthorization {
+            message: "test".to_owned(),
+            user: None,
+            user_email: None,
+            user_info: None,
+            error_code: Some(ErrorCode::EmailUnverified),
+        };
+        let json = json!({
+            "message": "test",
+            "user": null,
+            "user_email": null,
+            "user_info": null,
+            "error_code": 1001,
+        });
+        assert_eq!(serde_json::to_value(smb_authorization).unwrap(), json);
+    }
+}
