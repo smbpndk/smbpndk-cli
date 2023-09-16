@@ -41,4 +41,17 @@ pub mod ar_date_format {
         Utc.datetime_from_str(&s, FORMAT)
             .map_err(serde::de::Error::custom)
     }
+
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+        use chrono::TimeZone;
+        use serde_json::json;
+        #[test]
+        fn test_ar_date_format() {
+            let date = Utc.with_ymd_and_hms(2020, 1, 1, 0, 0, 0);
+            let json = json!("2020-01-01T00:00:00Z");
+            assert_eq!(serde_json::to_value(date.unwrap()).unwrap(), json);
+        }
+    }
 }

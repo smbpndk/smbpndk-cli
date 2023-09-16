@@ -62,3 +62,9 @@ impl Display for GithubEmail {
         write!(f, "{}", self.email)
     }
 }
+
+#[cfg(test)]
+mod tests {
+
+    
+}
