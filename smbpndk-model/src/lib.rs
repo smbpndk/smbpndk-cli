@@ -1,4 +1,5 @@
 pub mod account;
+pub mod forgot;
 pub mod login;
 pub mod signup;
 

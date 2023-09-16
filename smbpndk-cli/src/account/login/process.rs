@@ -1,5 +1,4 @@
 use crate::account::{
-    forgot::{Param, UserUpdatePassword},
     lib::{authorize_github, save_token},
     signup::{do_signup, SignupMethod},
 };
@@ -10,6 +9,7 @@ use log::debug;
 use reqwest::{Client, StatusCode};
 use smbpndk_model::{
     account::{ErrorCode, GithubInfo, SmbAuthorization, User},
+    forgot::{Param, UserUpdatePassword},
     login::{LoginArgs, LoginParams, UserParam},
     signup::{GithubEmail, Provider, SignupGithubParams, SignupUserGithub},
     CommandResult,

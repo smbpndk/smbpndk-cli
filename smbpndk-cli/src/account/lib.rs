@@ -3,7 +3,6 @@ use console::style;
 use log::debug;
 use regex::Regex;
 use reqwest::{Client, Response, StatusCode};
-
 use smbpndk_model::account::SmbAuthorization;
 use smbpndk_networking::{
     constants::{
