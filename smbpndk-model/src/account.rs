@@ -2,9 +2,11 @@ use crate::signup::GithubEmail;
 use serde::{Deserialize, Serialize};
 use serde_repr::Serialize_repr;
 use std::fmt::{Display, Formatter};
+use tsify::Tsify;
 
 // SMBPNDK Users.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Tsify)]
+#[tsify(into_wasm_abi)]
 pub struct User {
     pub id: i32,
     pub email: String,
@@ -16,13 +18,15 @@ impl Display for User {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Tsify)]
+#[tsify(into_wasm_abi)]
 pub struct Status {
     pub code: Option<i32>,
     pub message: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Tsify)]
+#[tsify(into_wasm_abi)]
 pub struct Data {
     id: i32,
     email: String,
@@ -30,7 +34,8 @@ pub struct Data {
 }
 
 // This is smb authorization model.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Tsify)]
+#[tsify(into_wasm_abi)]
 pub struct SmbAuthorization {
     pub message: String,
     pub user: Option<User>,
@@ -39,7 +44,8 @@ pub struct SmbAuthorization {
     pub error_code: Option<ErrorCode>,
 }
 
-#[derive(Debug, Serialize_repr, Deserialize, PartialEq)]
+#[derive(Debug, Serialize_repr, Deserialize, PartialEq, Tsify)]
+#[tsify(namespace)]
 #[repr(u32)]
 pub enum ErrorCode {
     EmailNotFound = 1000,
@@ -67,7 +73,8 @@ impl Clone for ErrorCode {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Tsify)]
+#[tsify(into_wasm_abi)]
 pub struct GithubInfo {
     pub id: i64,
     pub login: String,
